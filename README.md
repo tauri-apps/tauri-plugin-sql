@@ -24,7 +24,7 @@ There are three general methods of installation that we can recommend.
 2. Git submodule install this repo in your tauri project and then use `file` protocol to ingest the source
 3. Use crates.io and npm (easiest, and requires you to trust that our publishing pipeline worked)
 
-For more details and usage see [the Todo app](examples/todo/src/App.svelte). Please note, below in the dependencies you can also lock to a revision/tag in both the `Cargo.toml` and `package.json`
+For more details and usage see [the Todo app](examples/todo/). Please note, below in the dependencies you can also lock to a revision/tag in both the `Cargo.toml` and `package.json`
 
 ### RUST
 `src-tauri/Cargo.toml`
@@ -57,9 +57,9 @@ yarn add github:tauri-apps/tauri-plugin-sql#v0.1.0
 
 `Install from a commit`
 ```
-npm install github:tauri-apps/tauri-plugin-sql#6749525a47a95439c9703d3a49b94ac65660998f
+npm install github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aeadc8e
 # or
-yarn add github:tauri-apps/tauri-plugin-sql#6749525a47a95439c9703d3a49b94ac65660998f
+yarn add github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aeadc8e
 ```
 
 `package.json`
