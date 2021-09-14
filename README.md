@@ -65,12 +65,12 @@ yarn add github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aea
 `package.json`
 ```json
   "dependencies": {
-    "tauri-plugin-sql": "tauri-apps/tauri-plugin-sql#v0.1.0",
+    "tauri-plugin-sql-api": "tauri-apps/tauri-plugin-sql#v0.1.0",
 ```
 
 Use within your JS/TS:
 ```
-import Database from 'tauri-plugin-sql'
+import Database from 'tauri-plugin-sql-api'
 const db = Database.get('sqlite:test.db')
 await db.execute('INSERT INTO ...')
 ```
