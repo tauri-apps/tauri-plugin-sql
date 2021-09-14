@@ -1,7 +1,7 @@
 [package]
 name = "tauri-plugin-sql"
 version = "0.0.0"
-authors = ["Lucas Nogueira <lucas@tauri.studio>"]
+authors = [ "Tauri Programme within The Commons Conservancy" ]
 description = "A Tauri plugin for easily interfacing with SQL databases"
 edition = "2018"
 exclude = ["/examples", "/webview-dist", "/webview-src", "node_modules"]

@@ -2,7 +2,7 @@
   "name": "tauri-plugin-sql-api",
   "version": "0.1.0",
   "authors": [
-    "Lucas Nogueira <lucas@tauri.studio>"
+    "Tauri Programme within The Commons Conservancy"
   ],
   "description": "API wrapper for the Tauri Plugin for SQL databases",
   "browser": "webview-dist/index.js",
