@@ -1,5 +1,4 @@
 use futures::future::BoxFuture;
-use once_cell::sync::Lazy;
 use serde::Deserialize;
 use serde_json::Value as JsonValue;
 use sqlx::{
@@ -12,19 +11,19 @@ use sqlx::{
 use tauri::{
     command,
     plugin::{Plugin, Result as PluginResult},
-    AppHandle, Invoke, Runtime,
+    AppHandle, Invoke, Manager, Runtime, State,
 };
 use tokio::sync::Mutex;
 
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 #[cfg(feature = "sqlite")]
 type Db = sqlx::sqlite::Sqlite;
 
-fn db_instances() -> &'static Arc<Mutex<HashMap<String, Pool<Db>>>> {
-    static DBS: Lazy<Arc<Mutex<HashMap<String, Pool<Db>>>>> = Lazy::new(Default::default);
-    &DBS
-}
+type Result<T> = std::result::Result<T, String>;
+
+#[derive(Default)]
+struct DbInstances(Mutex<HashMap<String, Pool<Db>>>);
 
 #[derive(Deserialize)]
 struct PluginConfig {
@@ -60,7 +59,7 @@ pub struct Migration {
 struct MigrationList(Vec<Migration>);
 
 impl MigrationSource<'static> for MigrationList {
-    fn resolve(self) -> BoxFuture<'static, Result<Vec<SqlxMigration>, BoxDynError>> {
+    fn resolve(self) -> BoxFuture<'static, std::result::Result<Vec<SqlxMigration>, BoxDynError>> {
         Box::pin(async move {
             let mut migrations = Vec::new();
             for migration in self.0 {
@@ -79,19 +78,27 @@ impl MigrationSource<'static> for MigrationList {
 }
 
 #[command]
-async fn sqlx_execute(db: String, query: String) -> u64 {
-    let mut instances = db_instances().lock().await;
+async fn sqlx_execute(
+    db_instances: State<'_, DbInstances>,
+    db: String,
+    query: String,
+) -> Result<u64> {
+    let mut instances = db_instances.0.lock().await;
     let db = instances.get_mut(&db).unwrap();
-    sqlx::query(&query)
+    Ok(sqlx::query(&query)
         .execute(&*db)
         .await
         .unwrap()
-        .rows_affected()
+        .rows_affected())
 }
 
 #[command]
-async fn sqlx_select(db: String, query: String) -> Result<Vec<HashMap<String, JsonValue>>, String> {
-    let mut instances = db_instances().lock().await;
+async fn sqlx_select(
+    db_instances: State<'_, DbInstances>,
+    db: String,
+    query: String,
+) -> Result<Vec<HashMap<String, JsonValue>>> {
+    let mut instances = db_instances.0.lock().await;
     let db = instances.get_mut(&db).unwrap();
     let rows = sqlx::query(&query)
         .fetch_all(&*db)
@@ -157,10 +164,11 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
         "sql"
     }
 
-    fn initialize(&mut self, _app: &AppHandle<R>, config: serde_json::Value) -> PluginResult<()> {
+    fn initialize(&mut self, app: &AppHandle<R>, config: serde_json::Value) -> PluginResult<()> {
         tauri::async_runtime::block_on(async move {
             let config: PluginConfig = serde_json::from_value(config)?;
-            let mut instances = db_instances().lock().await;
+            let instances = DbInstances::default();
+            let mut lock = instances.0.lock().await;
             for db_url in config.preload {
                 if !Db::database_exists(&db_url).await.unwrap_or(false) {
                     Db::create_database(&db_url).await?;
@@ -170,8 +178,10 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
                     let migrator = Migrator::new(migrations).await.unwrap();
                     migrator.run(&pool).await.unwrap();
                 }
-                instances.insert(db_url.clone(), pool);
+                lock.insert(db_url.clone(), pool);
             }
+            drop(lock);
+            app.manage(instances);
             Ok(())
         })
     }
