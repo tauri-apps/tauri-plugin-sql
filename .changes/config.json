@@ -14,7 +14,7 @@
   },
   "packages": {
     "tauri-plugin-sql-api": {
-      "path": "./typescript",
+      "path": ".",
       "manager": "javascript",
       "dependencies": ["tauri-plugin-sql"]
     },
