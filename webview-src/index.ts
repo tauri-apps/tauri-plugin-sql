@@ -6,8 +6,8 @@ export default class Database {
     this.path = path
   }
 
-  static load(path: string) {
-    invoke('plugin:sql|sqlx_load', {
+  static load(path: string): Promise<Database> {
+    return invoke('plugin:sql|load', {
       db: path
     }).then(() => new Database(path))
   }
@@ -17,14 +17,14 @@ export default class Database {
   }
 
   execute(query: string): Promise<number> {
-    return invoke<number>('plugin:sql|sqlx_execute', {
+    return invoke<number>('plugin:sql|execute', {
       db: this.path,
       query
     })
   }
 
   select<T>(query: string): Promise<T> {
-    return invoke('plugin:sql|sqlx_select', {
+    return invoke('plugin:sql|select', {
       db: this.path,
       query
     })

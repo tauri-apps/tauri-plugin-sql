@@ -24,7 +24,7 @@ There are three general methods of installation that we can recommend.
 2. Git submodule install this repo in your tauri project and then use `file` protocol to ingest the source
 3. Use crates.io and npm (easiest, and requires you to trust that our publishing pipeline worked)
 
-For more details and usage see [the Todo app](examples/todo/). Please note, below in the dependencies you can also lock to a revision/tag in both the `Cargo.toml` and `package.json`
+For more details and usage see [the Todo app](examples/todos-app/). Please note, below in the dependencies you can also lock to a revision/tag in both the `Cargo.toml` and `package.json`
 
 ### RUST
 `src-tauri/Cargo.toml`
@@ -41,7 +41,7 @@ use tauri_plugin_sql::TauriSql;
 
 fn main() {
     tauri::AppBuilder::new()
-        .plugin(TauriSql {})
+        .plugin(TauriSql::default())
         .build()
         .run();
 }
@@ -71,7 +71,7 @@ yarn add github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aea
 Use within your JS/TS:
 ```
 import Database from 'tauri-plugin-sql-api'
-const db = Database.get('sqlite:test.db')
+const db = await Database.load('sqlite:test.db')
 await db.execute('INSERT INTO ...')
 ```
 

@@ -25,7 +25,9 @@ type Result<T> = std::result::Result<T, String>;
 #[derive(Default)]
 struct DbInstances(Mutex<HashMap<String, Pool<Db>>>);
 
-#[derive(Deserialize)]
+struct Migrations(Mutex<HashMap<String, MigrationList>>);
+
+#[derive(Default, Deserialize)]
 struct PluginConfig {
     #[serde(default)]
     preload: Vec<String>,
@@ -78,11 +80,25 @@ impl MigrationSource<'static> for MigrationList {
 }
 
 #[command]
-async fn sqlx_execute(
+async fn load(
     db_instances: State<'_, DbInstances>,
+    migrations: State<'_, Migrations>,
     db: String,
-    query: String,
-) -> Result<u64> {
+) -> Result<()> {
+    if !Db::database_exists(&db).await.unwrap_or(false) {
+        Db::create_database(&db).await.map_err(|e| e.to_string())?;
+    }
+    let pool = Pool::connect(&db).await.map_err(|e| e.to_string())?;
+    if let Some(migrations) = migrations.0.lock().await.remove(&db) {
+        let migrator = Migrator::new(migrations).await.unwrap();
+        migrator.run(&pool).await.unwrap();
+    }
+    db_instances.0.lock().await.insert(db.clone(), pool);
+    Ok(())
+}
+
+#[command]
+async fn execute(db_instances: State<'_, DbInstances>, db: String, query: String) -> Result<u64> {
     let mut instances = db_instances.0.lock().await;
     let db = instances.get_mut(&db).unwrap();
     Ok(sqlx::query(&query)
@@ -93,7 +109,7 @@ async fn sqlx_execute(
 }
 
 #[command]
-async fn sqlx_select(
+async fn select(
     db_instances: State<'_, DbInstances>,
     db: String,
     query: String,
@@ -137,15 +153,15 @@ async fn sqlx_select(
 
 /// Tauri SQL plugin.
 pub struct TauriSql<R: Runtime> {
-    migrations: HashMap<String, MigrationList>,
+    migrations: Option<HashMap<String, MigrationList>>,
     invoke_handler: Box<dyn Fn(Invoke<R>) + Send + Sync>,
 }
 
 impl<R: Runtime> Default for TauriSql<R> {
     fn default() -> Self {
         Self {
-            migrations: Default::default(),
-            invoke_handler: Box::new(tauri::generate_handler![sqlx_execute, sqlx_select]),
+            migrations: Some(Default::default()),
+            invoke_handler: Box::new(tauri::generate_handler![load, execute, select]),
         }
     }
 }
@@ -154,6 +170,8 @@ impl<R: Runtime> TauriSql<R> {
     /// Add migrations to a database.
     pub fn add_migrations(mut self, db_url: &str, migrations: Vec<Migration>) -> Self {
         self.migrations
+            .as_mut()
+            .unwrap()
             .insert(db_url.to_string(), MigrationList(migrations));
         self
     }
@@ -166,7 +184,11 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
 
     fn initialize(&mut self, app: &AppHandle<R>, config: serde_json::Value) -> PluginResult<()> {
         tauri::async_runtime::block_on(async move {
-            let config: PluginConfig = serde_json::from_value(config)?;
+            let config: PluginConfig = if config.is_null() {
+                Default::default()
+            } else {
+                serde_json::from_value(config)?
+            };
             let instances = DbInstances::default();
             let mut lock = instances.0.lock().await;
             for db_url in config.preload {
@@ -174,7 +196,7 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
                     Db::create_database(&db_url).await?;
                 }
                 let pool = Pool::connect(&db_url).await?;
-                if let Some(migrations) = self.migrations.remove(&db_url) {
+                if let Some(migrations) = self.migrations.as_mut().unwrap().remove(&db_url) {
                     let migrator = Migrator::new(migrations).await.unwrap();
                     migrator.run(&pool).await.unwrap();
                 }
@@ -182,6 +204,7 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
             }
             drop(lock);
             app.manage(instances);
+            app.manage(Migrations(Mutex::new(self.migrations.take().unwrap())));
             Ok(())
         })
     }
