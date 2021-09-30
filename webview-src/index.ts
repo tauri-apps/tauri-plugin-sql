@@ -1,5 +1,10 @@
 import { invoke } from '@tauri-apps/api/tauri'
 
+export interface QueryResult {
+  rowsAffected: number
+  lastInsertId: number
+}
+
 export default class Database {
   path: string
   constructor(path: string) {
@@ -16,17 +21,19 @@ export default class Database {
     return new Database(path)
   }
 
-  execute(query: string): Promise<number> {
-    return invoke<number>('plugin:sql|execute', {
+  execute(query: string, bindValues?: any[]): Promise<QueryResult> {
+    return invoke<[number, number]>('plugin:sql|execute', {
       db: this.path,
-      query
-    })
+      query,
+      values: bindValues ?? []
+    }).then(([rowsAffected, lastInsertId]) => ({ rowsAffected, lastInsertId }))
   }
 
-  select<T>(query: string): Promise<T> {
+  select<T>(query: string, bindValues?: any[]): Promise<T> {
     return invoke('plugin:sql|select', {
       db: this.path,
-      query
+      query,
+      values: bindValues ?? []
     })
   }
 }

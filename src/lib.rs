@@ -98,14 +98,20 @@ async fn load(
 }
 
 #[command]
-async fn execute(db_instances: State<'_, DbInstances>, db: String, query: String) -> Result<u64> {
+async fn execute(
+    db_instances: State<'_, DbInstances>,
+    db: String,
+    query: String,
+    values: Vec<JsonValue>,
+) -> Result<(u64, i64)> {
     let mut instances = db_instances.0.lock().await;
     let db = instances.get_mut(&db).unwrap();
-    Ok(sqlx::query(&query)
-        .execute(&*db)
-        .await
-        .unwrap()
-        .rows_affected())
+    let mut query = sqlx::query(&query);
+    for value in values {
+        query = query.bind(value);
+    }
+    let result = query.execute(&*db).await.unwrap();
+    Ok((result.rows_affected(), result.last_insert_rowid()))
 }
 
 #[command]
@@ -113,13 +119,15 @@ async fn select(
     db_instances: State<'_, DbInstances>,
     db: String,
     query: String,
+    values: Vec<JsonValue>,
 ) -> Result<Vec<HashMap<String, JsonValue>>> {
     let mut instances = db_instances.0.lock().await;
     let db = instances.get_mut(&db).unwrap();
-    let rows = sqlx::query(&query)
-        .fetch_all(&*db)
-        .await
-        .map_err(|e| e.to_string())?;
+    let mut query = sqlx::query(&query);
+    for value in values {
+        query = query.bind(value);
+    }
+    let rows = query.fetch_all(&*db).await.map_err(|e| e.to_string())?;
     let mut values = Vec::new();
     for row in rows {
         let mut value = HashMap::default();
@@ -130,7 +138,14 @@ async fn select(
             } else {
                 match info.name() {
                     "VARCHAR" | "STRING" | "TEXT" => JsonValue::String(row.get(i)),
-                    "BOOL" | "BOOLEAN" => JsonValue::Bool(row.get(i)),
+                    "BOOL" | "BOOLEAN" => {
+                        if let Ok(b) = row.try_get(i) {
+                            JsonValue::Bool(b)
+                        } else {
+                            let x: String = row.get(i);
+                            JsonValue::Bool(x.to_lowercase() == "true")
+                        }
+                    }
                     "INT" | "NUMBER" | "INTEGER" | "BIGINT" | "INT8" => {
                         JsonValue::Number(row.get::<u32, usize>(i).into())
                     }
