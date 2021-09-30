@@ -1,7 +1,11 @@
 import { invoke } from '@tauri-apps/api/tauri'
 
 export interface QueryResult {
+  // the number of rows affected by the query.
   rowsAffected: number
+  // the last inserted id. This value is always `0` when using the Postgres driver.
+  // If the last inserted id is required on Postgres,
+  // the `select` function must be used, with a `RETURNING` clause (`INSERT INTO todos (title) VALUES ($1) RETURNING id`).
   lastInsertId: number
 }
 

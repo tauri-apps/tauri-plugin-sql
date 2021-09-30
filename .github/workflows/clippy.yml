@@ -28,8 +28,21 @@ jobs:
             toolchain: stable
             override: true
             components: clippy
-      - uses: actions-rs/clippy-check@v1
+      - name: sqlite clippy
+        uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --manifest-path=Cargo.toml --all-targets --all-features -- -D warnings
-          name: clippy
+          args: --all-targets --features sqlite -- -D warnings
+          name: sqlite-clippy
+      - name: mysql clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-targets --features mysql -- -D warnings
+          name: mysql-clippy
+      - name: postgres clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-targets --features postgres -- -D warnings
+          name: postgres-clippy

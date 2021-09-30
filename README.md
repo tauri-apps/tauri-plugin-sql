@@ -2,6 +2,7 @@
 ![Test](https://github.com/tauri-apps/tauri-plugin-sql/workflows/Test/badge.svg)
 
 This plugin provides a "classical" Tauri Plugin Interface to SQL databases through [sqlx](https://github.com/launchbadge/sqlx).
+It supports the `sqlite`, `mysql` and `postgres` drivers, enabled through a Cargo feature.
 
 ## Architecture
 This repo shape might appear to be strange, but it is really just a hybrid Rust / Typescript project that recommends a specific type of consumption, namely using GIT as the secure distribution mechanism, and referencing specific unforgeable git hashes. Of course, it can also be consumed via Cargo and NPM.
@@ -32,6 +33,7 @@ For more details and usage see [the Todo app](examples/todos-app/). Please note,
 [dependencies.tauri-plugin-sql]
 git = "https://github.com/tauri-apps/tauri-plugin-sql"
 tag = "v0.1.0"
+features = ["sqlite"] # or "postgres", or "mysql"
 #branch = "main"
 ```
 
@@ -71,7 +73,14 @@ yarn add github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aea
 Use within your JS/TS:
 ```
 import Database from 'tauri-plugin-sql-api'
+
+// sqlite
 const db = await Database.load('sqlite:test.db')
+// mysql
+const db = await Database.load('mysql://user:pass@host/database')
+// postgres
+const db = await Database.load('postgres://postgres:password@localhost/test')
+
 await db.execute('INSERT INTO ...')
 ```
 
