@@ -1,5 +1,5 @@
 use futures::future::BoxFuture;
-use serde::Deserialize;
+use serde::{ser::Serializer, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use sqlx::{
     error::BoxDynError,
@@ -29,7 +29,26 @@ type LastInsertId = i64;
 #[cfg(not(feature = "sqlite"))]
 type LastInsertId = u64;
 
-type Result<T> = std::result::Result<T, String>;
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error(transparent)]
+    Sql(#[from] sqlx::Error),
+    #[error(transparent)]
+    Migration(#[from] sqlx::migrate::MigrateError),
+    #[error("database {0} not loaded")]
+    DatabaseNotLoaded(String),
+}
+
+impl Serialize for Error {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(self.to_string().as_ref())
+    }
+}
+
+type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Default)]
 struct DbInstances(Mutex<HashMap<String, Pool<Db>>>);
@@ -95,12 +114,12 @@ async fn load(
     db: String,
 ) -> Result<()> {
     if !Db::database_exists(&db).await.unwrap_or(false) {
-        Db::create_database(&db).await.map_err(|e| e.to_string())?;
+        Db::create_database(&db).await?;
     }
-    let pool = Pool::connect(&db).await.map_err(|e| e.to_string())?;
+    let pool = Pool::connect(&db).await?;
     if let Some(migrations) = migrations.0.lock().await.remove(&db) {
-        let migrator = Migrator::new(migrations).await.unwrap();
-        migrator.run(&pool).await.unwrap();
+        let migrator = Migrator::new(migrations).await?;
+        migrator.run(&pool).await?;
     }
     db_instances.0.lock().await.insert(db.clone(), pool);
     Ok(())
@@ -114,12 +133,12 @@ async fn execute(
     values: Vec<JsonValue>,
 ) -> Result<(u64, LastInsertId)> {
     let mut instances = db_instances.0.lock().await;
-    let db = instances.get_mut(&db).unwrap();
+    let db = instances.get_mut(&db).ok_or(Error::DatabaseNotLoaded(db))?;
     let mut query = sqlx::query(&query);
     for value in values {
         query = query.bind(value);
     }
-    let result = query.execute(&*db).await.unwrap();
+    let result = query.execute(&*db).await?;
     #[cfg(feature = "sqlite")]
     let r = Ok((result.rows_affected(), result.last_insert_rowid()));
     #[cfg(feature = "mysql")]
@@ -137,12 +156,12 @@ async fn select(
     values: Vec<JsonValue>,
 ) -> Result<Vec<HashMap<String, JsonValue>>> {
     let mut instances = db_instances.0.lock().await;
-    let db = instances.get_mut(&db).unwrap();
+    let db = instances.get_mut(&db).ok_or(Error::DatabaseNotLoaded(db))?;
     let mut query = sqlx::query(&query);
     for value in values {
         query = query.bind(value);
     }
-    let rows = query.fetch_all(&*db).await.map_err(|e| e.to_string())?;
+    let rows = query.fetch_all(&*db).await?;
     let mut values = Vec::new();
     for row in rows {
         let mut value = HashMap::default();
@@ -227,8 +246,8 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
                 }
                 let pool = Pool::connect(&db_url).await?;
                 if let Some(migrations) = self.migrations.as_mut().unwrap().remove(&db_url) {
-                    let migrator = Migrator::new(migrations).await.unwrap();
-                    migrator.run(&pool).await.unwrap();
+                    let migrator = Migrator::new(migrations).await?;
+                    migrator.run(&pool).await?;
                 }
                 lock.insert(db_url.clone(), pool);
             }
