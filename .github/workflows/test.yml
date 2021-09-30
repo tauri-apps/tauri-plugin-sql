@@ -73,8 +73,20 @@ jobs:
         restore-keys: |
           ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
 
-    - name: Run tests 
+    - name: Run tests for sqlite driver
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --manifest-path=Cargo.toml --release
+        args: --features sqlite --release
+
+    - name: Run tests for mysql driver
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --features mysql --release
+
+    - name: Run tests for postgres driver
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --features postgres --release
