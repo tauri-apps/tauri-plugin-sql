@@ -42,7 +42,7 @@ Use in `src-tauri/src/main.rs`:
 use tauri_plugin_sql::TauriSql;
 
 fn main() {
-    tauri::AppBuilder::new()
+    tauri::Builder::default()
         .plugin(TauriSql::default())
         .build()
         .run();
