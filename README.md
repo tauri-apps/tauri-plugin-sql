@@ -67,11 +67,11 @@ yarn add github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aea
 `package.json`
 ```json
   "dependencies": {
-    "tauri-plugin-sql-api": "tauri-apps/tauri-plugin-sql#v0.1.0",
+    "tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#v0.1.0",
 ```
 
 Use within your JS/TS:
-```
+```ts
 import Database from 'tauri-plugin-sql-api'
 
 // sqlite
