@@ -5,9 +5,12 @@
     "Tauri Programme within The Commons Conservancy"
   ],
   "description": "API wrapper for the Tauri Plugin for SQL databases",
-  "browser": "webview-dist/index.js",
-  "main": "webview-dist/index.js",
+  "browser": "webview-dist/index.min.js",
+  "module": "webview-dist/index.mjs",
   "types": "webview-dist/index.d.ts",
+  "files": [
+    "webview-dist"
+  ],
   "scripts": {
     "build": "rollup -c ./webview-src/rollup.config.js",
     "prepublishOnly": "yarn build",
