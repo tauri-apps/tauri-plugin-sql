@@ -12,7 +12,7 @@ thiserror = "1.0"
 serde = "1.0"
 serde_json = "1.0"
 sqlx = { version = "0.5", features = [ "runtime-tokio-rustls", "json" ] }
-tokio = { version = "1.13", features = [ "sync" ] }
+tokio = { version = "1.14", features = [ "sync" ] }
 futures = "0.3"
 
 [features]
