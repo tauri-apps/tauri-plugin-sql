@@ -3,6 +3,8 @@
   "version": "1.1.0",
   "scripts": {
     "build": "vue-tsc --noEmit && vite build",
+    "build:binary": "npx tauri build",
+    "dmg": "open ./src-tauri/target/release/bundle/dmg",
     "dev": "vite",
     "lint": "npx eslint src --ext ts --fix ",
     "preview": "run-p preview:*",

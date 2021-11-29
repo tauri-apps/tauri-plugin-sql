@@ -1,6 +1,6 @@
 {
   "package": {
-    "productName": "todos-app",
+    "productName": "Todos",
     "version": "0.1.0"
   },
   "build": {
@@ -21,7 +21,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "resources": ["./test.db"],
+      "resources": [],
       "externalBin": [],
       "copyright": "",
       "category": "Productivity",

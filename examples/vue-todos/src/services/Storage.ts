@@ -1,4 +1,4 @@
-import Database from 'tauri-plugin-sql-api';
+import Database, { QueryResult } from 'tauri-plugin-sql-api';
 import { v4 } from 'uuid';
 import type { Todo, uuid } from '../models/Todo';
 
@@ -55,7 +55,7 @@ async function update(todo: Todo): Promise<Todo> {
   return todo;
 }
 
-async function remove(id: uuid): Promise<boolean> {
+async function remove(id: uuid): Promise<QueryResult> {
   return await db.execute('DELETE FROM todos WHERE id = $1', [id]);
 }
 
