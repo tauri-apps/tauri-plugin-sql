@@ -3,15 +3,11 @@
   "version": "1.1.0",
   "scripts": {
     "build": "vue-tsc --noEmit && vite build",
-    "build:only": "svelte-kit build",
-    "check": "svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
     "dev": "vite",
-    "dev:only": "svelte-kit dev",
-    "lint": "eslint --ignore-path .gitignore .",
-    "preview": "svelte-kit preview",
-    "tailwind:build": "cross-env TAILWIND_MODE=build cross-env NODE_ENV=production postcss src/styles/tailwind.css -o src/styles/tailwind-output.css",
-    "tailwind:watch": "cross-env TAILWIND_MODE=watch cross-env NODE_ENV=development postcss src/styles/tailwind.css -o src/styles/tailwind-output.css -w",
+    "lint": "npx eslint src --ext ts --fix ",
+    "preview": "run-p preview:*",
+    "preview:vite": "vite preview",
+    "preview:tauri": "npx tauri dev",
     "tauri": "tauri"
   },
   "dependencies": {
@@ -29,10 +25,12 @@
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "@vitejs/plugin-vue": "^1.10.1",
-    "autoprefixer": "^10.4.0",
     "cross-env": "^7.0.3",
     "eslint": "^8.3.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier-vue": "^3.1.0",
+    "eslint-plugin-vue": "^8.1.1",
+    "npm-run-all": "^4.1.5",
     "prettier": "~2.5.0",
     "tslib": "^2.3.1",
     "typescript": "^4.5.2",
@@ -40,7 +38,7 @@
     "unplugin-vue-components": "^0.17.2",
     "vite": "^2.6.14",
     "vite-plugin-windicss": "^1.5.3",
-    "vue-tsc": "^0.29.6",
+    "vue-tsc": "^0.29.7",
     "windicss": "^3.2.1"
   }
 }
