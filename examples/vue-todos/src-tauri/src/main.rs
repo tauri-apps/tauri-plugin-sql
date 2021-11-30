@@ -3,12 +3,12 @@
   windows_subsystem = "windows"
 )]
 
-use tauri::{CustomMenuItem, Menu,  Submenu};
+use tauri::{MenuItem, Menu, Submenu};
 use tauri_plugin_sql::{Migration, MigrationKind, TauriSql};
 
 fn main() {
-  let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-  let submenu = Submenu::new("File", Menu::new().add_item(quit));
+  // let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+  let submenu = Submenu::new("File", Menu::new().add_native_item(MenuItem::Quit));
   let menu = Menu::new().add_submenu(submenu);
 
   tauri::Builder::default()
