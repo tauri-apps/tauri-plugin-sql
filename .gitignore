@@ -13,6 +13,7 @@ Cargo.lock
 node_modules/
 
 pnpm-*
+.pnpm*
 test.db-shm
 test.db-wal
 
