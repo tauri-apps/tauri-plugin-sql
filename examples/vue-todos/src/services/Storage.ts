@@ -1,4 +1,5 @@
-import Database, { QueryResult } from 'tauri-plugin-sql-api';
+import Database from 'tauri-plugin-sql-api';
+import type { QueryResult } from 'tauri-plugin-sql-api';
 import { v4 } from 'uuid';
 import type { Todo, uuid } from '../models/Todo';
 
@@ -56,6 +57,7 @@ async function update(todo: Todo): Promise<Todo> {
 }
 
 async function remove(id: uuid): Promise<QueryResult> {
+  // TODO: this is almost surely incorrect but exporting `QueryResult` seems to disrupt backend
   return await db.execute('DELETE FROM todos WHERE id = $1', [id]);
 }
 
