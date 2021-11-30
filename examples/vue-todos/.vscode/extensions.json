@@ -1,8 +1,0 @@
-{
-  "recommendations": [
-    "johnsoncodehk.volar",
-    "dbaeumer.vscode-eslint",
-    "voorjaar.windicss-intellisense"
-  ],
-  "unwantedRecommendations": ["octref.vetur"]
-}
