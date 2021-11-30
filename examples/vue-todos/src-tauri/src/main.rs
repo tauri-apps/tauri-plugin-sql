@@ -7,19 +7,11 @@ use tauri::{MenuItem, Menu, Submenu};
 use tauri_plugin_sql::{Migration, MigrationKind, TauriSql};
 
 fn main() {
-  // let quit = CustomMenuItem::new("quit".to_string(), "Quit");
   let submenu = Submenu::new("File", Menu::new().add_native_item(MenuItem::Quit));
   let menu = Menu::new().add_submenu(submenu);
 
   tauri::Builder::default()
     .menu(menu)
-    .on_menu_event(|event| match event.menu_item_id() {
-      "quit" => {
-        std::process::exit(0);
-      }
-
-      _ => {}
-    })
     .plugin(TauriSql::default().add_migrations(
       "sqlite:test.db",
       vec![Migration {
