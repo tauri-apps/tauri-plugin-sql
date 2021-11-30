@@ -11,3 +11,11 @@ yarn.lock
 /target
 Cargo.lock
 node_modules/
+
+pnpm-*
+test.db-shm
+test.db-wal
+
+**/dist
+*.code-workspace
+.do-devops.json
