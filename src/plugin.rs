@@ -136,7 +136,11 @@ async fn execute(
     let db = instances.get_mut(&db).ok_or(Error::DatabaseNotLoaded(db))?;
     let mut query = sqlx::query(&query);
     for value in values {
-        query = query.bind(value);
+        if value.is_string() {
+            query = query.bind(value.as_str().unwrap().to_owned())
+        } else {
+            query = query.bind(value);
+        }
     }
     let result = query.execute(&*db).await?;
     #[cfg(feature = "sqlite")]
