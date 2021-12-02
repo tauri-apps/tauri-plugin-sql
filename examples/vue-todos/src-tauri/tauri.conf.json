@@ -7,7 +7,7 @@
     "distDir": "../dist",
     "devPath": "http://localhost:3000",
     "beforeDevCommand": "npx vite",
-    "beforeBuildCommand": "npx build:frontend"
+    "beforeBuildCommand": "npx vite build"
   },
   "tauri": {
     "bundle": {

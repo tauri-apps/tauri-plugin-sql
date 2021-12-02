@@ -2,8 +2,8 @@
   "name": "todos-app",
   "version": "1.1.0",
   "scripts": {
+    "build": "npx tauri build",
     "build:frontend": "vue-tsc --noEmit && vite build",
-    "build:binary": "npx tauri build",
     "dev": "npx tauri dev",
     "dev:frontend": "vite",
     "lint": "npx eslint src --ext ts --fix ",
