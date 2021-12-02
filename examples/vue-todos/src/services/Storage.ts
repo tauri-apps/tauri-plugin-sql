@@ -21,7 +21,11 @@ export type DbConnection = { error: string; db: false } | { db: Database; error:
 
 async function connect(): Promise<DbConnection> {
   const result = await load();
-  return typeof result === 'string' ? { error: result, db: false } : { db: result, error: false };
+  return typeof result === 'string'
+    ? result.includes('Cannot read properties')
+      ? { error: '', db: false }
+      : { error: result, db: false }
+    : { db: result, error: false };
 }
 
 async function all(): Promise<Todo[]> {
