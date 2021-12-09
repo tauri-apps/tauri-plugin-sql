@@ -185,7 +185,7 @@ async fn select(
                         }
                     }
                     "INT" | "NUMBER" | "INTEGER" | "BIGINT" | "INT8" => {
-                        JsonValue::Number(row.get::<u32, usize>(i).into())
+                        JsonValue::Number(row.get::<i64, usize>(i).into())
                     }
                     // "JSON" => JsonValue::Object(row.get(i)),
                     "BLOB" => JsonValue::Array(
