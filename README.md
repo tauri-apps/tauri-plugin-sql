@@ -37,6 +37,8 @@ features = ["sqlite"] # or "postgres", or "mysql"
 #branch = "main"
 ```
 
+> Note: if you do not specify the database type in `features` it will default to **sqlite**.
+
 Use in `src-tauri/src/main.rs`:
 ```rust
 use tauri_plugin_sql::TauriSql;

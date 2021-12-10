@@ -1,9 +1,9 @@
 [package]
 name = "tauri-plugin-sql"
 version = "0.0.0"
-authors = [ "Tauri Programme within The Commons Conservancy" ]
+authors = ["Tauri Programme within The Commons Conservancy"]
 description = "A Tauri plugin for easily interfacing with SQL databases"
-edition = "2018"
+edition = "2021"
 exclude = ["/examples", "/webview-dist", "/webview-src", "node_modules"]
 
 [dependencies]
@@ -11,11 +11,12 @@ tauri = "1.0.0-beta.8"
 thiserror = "1.0"
 serde = "1.0"
 serde_json = "1.0"
-sqlx = { version = "0.5", features = [ "runtime-tokio-rustls", "json" ] }
-tokio = { version = "1.14", features = [ "sync" ] }
+sqlx = { version = "0.5", features = ["runtime-tokio-rustls", "json"] }
+tokio = { version = "1.14", features = ["sync"] }
 futures = "0.3"
 
 [features]
 sqlite = ["sqlx/sqlite"]
 mysql = ["sqlx/mysql"]
 postgres = ["sqlx/postgres"]
+default = ["sqlite"]
