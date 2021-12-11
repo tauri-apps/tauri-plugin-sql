@@ -3,6 +3,7 @@
   "version": "1.1.0",
   "scripts": {
     "build": "npx tauri build",
+    "build:ci": "CI=true npx tauri build",
     "build:frontend": "vue-tsc --noEmit && vite build",
     "dev": "npx tauri dev",
     "dev:frontend": "vite",
