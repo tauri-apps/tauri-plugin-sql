@@ -5,12 +5,19 @@
   "license": "MIT",
   "module": "webview-dist/index.mjs",
   "browser": "webview-dist/index.min.js",
+  "exports": {
+    ".": {
+      "import": "./webview-dist/index.mjs"
+    }
+  },
   "types": "webview-dist/index.d.ts",
   "files": [
     "webview-dist"
   ],
   "scripts": {
-    "build": "rollup -c ./webview-src/rollup.config.js",
+    "build": "run-p build:*",
+    "build:esm": "tsup webview-src/index.ts --format='esm' --dts --clean",
+    "build:browser": "tsup webview-src/index.ts --format='esm' --minify --clean",
     "lint": "eslint --ext ts \"./webview-src/**/*.ts\"",
     "lint-fix": "eslint --fix --ext ts \"./src/**/*.ts\"",
     "prepublishOnly": "yarn build",
@@ -21,8 +28,6 @@
     "tslib": "2.3.1"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^13.0.6",
-    "@rollup/plugin-typescript": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",
     "eslint": "^8.4.1",
@@ -34,9 +39,9 @@
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-promise": "^5.2.0",
     "eslint-plugin-security": "^1.4.0",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.5.1",
-    "rollup": "^2.61.1",
-    "rollup-plugin-terser": "^7.0.2",
+    "tsup": "^5.11.1",
     "typescript": "^4.5.3"
   },
   "authors": [
