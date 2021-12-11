@@ -4,20 +4,27 @@
   "description": "API wrapper for the Tauri Plugin for SQL databases",
   "license": "MIT",
   "module": "webview-dist/index.mjs",
-  "browser": "webview-dist/index.min.js",
   "exports": {
     ".": {
       "import": "./webview-dist/index.mjs"
     }
   },
-  "types": "webview-dist/index.d.ts",
+  "types": "./webview-dist/index.d.ts",
+  "type": "module",
   "files": [
     "webview-dist"
   ],
+  "tsup": {
+    "entry": [
+      "./webview-dist/index.ts"
+    ],
+    "sourcemap": true,
+    "clean": true,
+    "dts": true
+  },
   "scripts": {
-    "build": "run-p build:*",
-    "build:esm": "tsup webview-src/index.ts --format='esm' --dts --clean",
-    "build:browser": "tsup webview-src/index.ts --format='esm' --minify --clean",
+    "build": "run-p lint build:esm",
+    "build:esm": "tsup webview-src/index.ts --format='esm' --dts",
     "lint": "eslint --ext ts \"./webview-src/**/*.ts\"",
     "lint-fix": "eslint --fix --ext ts \"./src/**/*.ts\"",
     "prepublishOnly": "yarn build",

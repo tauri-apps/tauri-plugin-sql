@@ -12,6 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "declaration": true,
+
     "outDir": "./webview-dist",
     "declarationDir": "./webview-dist"
   },

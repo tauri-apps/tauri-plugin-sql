@@ -61,7 +61,6 @@ async function update(todo: Todo): Promise<Todo> {
 }
 
 async function remove(id: uuid): Promise<QueryResult> {
-  // TODO: this is almost surely incorrect but exporting `QueryResult` seems to disrupt backend
   return await db.execute('DELETE FROM todos WHERE id = $1', [id]);
 }
 
