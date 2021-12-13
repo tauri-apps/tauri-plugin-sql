@@ -9,7 +9,7 @@ authors = [
 license = ""
 repository = ""
 default-run = "todos-app"
-edition = "2021"
+edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

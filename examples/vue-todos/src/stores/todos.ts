@@ -29,19 +29,25 @@ export const useStore = defineStore('todos', {
     /**
      * Connects to DB and gets all TODOs from DB
      */
-    async init() {
-      const connection = await Storage.connect();
-      if (connection.db) {
-        const todos = await Storage.all();
-        console.log({ db: connection.db });
+    async initializeDbBackedStore() {
+      try {
+        await Storage.connect();
+      } catch (e) {
+        this.dbError = `Failed to connect to DB: ${e}`;
+        console.log(this.dbError);
 
-        this.todos = todos;
-        this.ready = true;
-      } else {
         this.todos = [];
         this.ready = false;
-        console.warn(`Failed to connect to DB: ${connection.error}`);
-        this.dbError = connection.error;
+      }
+
+      try {
+        const todos = await Storage.all();
+        this.todos = todos;
+        this.ready = true;
+      } catch (e) {
+        this.dbError = `Failure getting TODO items from DB: ${e}`;
+        this.todos = [];
+        this.ready = false;
       }
     },
     async add(task: string) {

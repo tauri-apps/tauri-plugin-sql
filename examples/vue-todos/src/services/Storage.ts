@@ -4,32 +4,19 @@ import { v4 } from 'uuid';
 import type { Todo, uuid } from '../models/Todo';
 
 let db: null | Database = null;
-const load = async (): Promise<Database | string> => {
-  if (db) {
-    return;
-  }
+
+async function connect(): Promise<Database> {
   try {
-    const instance = await Database.load('sqlite:test.db');
-    db = instance;
+    db = await Database.load('sqlite:test.db');
+    console.log({ db });
     return db;
-  } catch (err) {
-    return err?.message || String(err);
+  } catch (e) {
+    console.log(e);
   }
-};
-
-export type DbConnection = { error: string; db: false } | { db: Database; error: false };
-
-async function connect(): Promise<DbConnection> {
-  const result = await load();
-  return typeof result === 'string'
-    ? result.includes('Cannot read properties')
-      ? { error: '', db: false }
-      : { error: result, db: false }
-    : { db: result, error: false };
 }
 
 async function all(): Promise<Todo[]> {
-  await load();
+  await connect();
   return await db.select('SELECT * FROM todos');
 }
 

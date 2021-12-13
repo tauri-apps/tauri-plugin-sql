@@ -37,9 +37,9 @@ export default class Database {
    * ```
    */
   static async load(path: string): Promise<Database> {
-    return await invoke('plugin:sql|load', {
+    return await invoke<string>('plugin:sql|load', {
       db: path
-    }).then(() => new Database(path))
+    }).then((p) => new Database(p))
   }
 
   /**

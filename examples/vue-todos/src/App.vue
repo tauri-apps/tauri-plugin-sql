@@ -7,9 +7,9 @@ const s = useStore();
 
 onMounted(async () => {
   try {
-    await s.init();
+    await s.initializeDbBackedStore();
   } catch (e) {
-    console.log(`There was a problem initializing the store`);
+    console.log(`There was a problem initializing the database`, e);
   }
 });
 </script>
