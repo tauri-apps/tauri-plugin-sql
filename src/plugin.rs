@@ -89,11 +89,6 @@ impl From<&str> for Connection {
         }
     }
 }
-impl From<MigrationKind> for Connection {
-    fn from(connect: MigrationKind) -> Self {
-        Connection::from(connect);
-    }
-}
 
 impl From<String> for Connection {
     fn from(connect: String) -> Self {
