@@ -11,7 +11,8 @@ export const useStore = defineStore('todos', {
     return {
       todos: [] as Todo[],
       ready: false,
-      dbError: undefined as string | undefined
+      dbError: undefined as string | undefined,
+      dbConnectionString: ''
     };
   },
   getters: {
@@ -26,6 +27,12 @@ export const useStore = defineStore('todos', {
     }
   },
   actions: {
+    setErrorState(err: string) {
+      this.dbError = err;
+    },
+    setDbConnectionString(connect: string) {
+      this.dbConnectionString = connect;
+    },
     /**
      * Connects to DB and gets all TODOs from DB
      */

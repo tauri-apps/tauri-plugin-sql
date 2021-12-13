@@ -13,7 +13,9 @@ const style = (t: Todo) => `${t.completed ? '' : ''} `;
 </script>
 
 <template>
-  <li class="flex flex-row items-center min-w-64 hover:bg-gray-50 px-2 -mx-2 cursor-default py-1">
+  <li
+    class="flex flex-row items-center min-w-64 rounded hover:bg-gray-50 dark:hover:bg-gray-600 px-2 -mx-2 cursor-default py-1"
+  >
     <div
       class="checkbox flex flex-grow-0 mr-4"
       :class="props.todo.completed ? 'fill-gray-100' : ''"

@@ -225,21 +225,12 @@ async fn load(
         }
     }
 
-    println!(
-        "Connection string is: {}; DB exists {}; App dir exists: {}",
-        &conn, db_exists, app_dir_exists
-    );
-
     if !db_exists {
         Db::create_database(&conn).await?;
-        println!("database was created");
+        println!("new database was created for TODOs app: {}", &conn);
     }
 
-    println!("About to connect to pool");
     let pool = Pool::connect(&conn).await?;
-    println!("Pool established");
-
-    println!("Migrations: {:?}", migrations.0);
 
     if let Some(migrations) = migrations.0.lock().await.remove(&conn) {
         let migrator = Migrator::new(migrations).await?;
@@ -383,6 +374,11 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
             };
 
             let locations = Locations::new(app);
+            println!(
+                "Locations:\n\tapp: {}\n\tresources: {}",
+                &locations.app.to_str().unwrap_or(""),
+                locations.resources.to_str().unwrap_or("")
+            );
 
             let instances = DbInstances::default();
             let mut lock = instances.0.lock().await;

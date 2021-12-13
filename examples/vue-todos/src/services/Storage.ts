@@ -2,21 +2,25 @@ import Database from 'tauri-plugin-sql-api';
 import type { QueryResult } from 'tauri-plugin-sql-api';
 import { v4 } from 'uuid';
 import type { Todo, uuid } from '../models/Todo';
+import { useStore } from '../stores/todos';
 
 let db: null | Database = null;
 
 async function connect(): Promise<Database> {
+  const s = useStore();
   try {
     db = await Database.load('sqlite:test.db');
-    console.log({ db });
+    s.setDbConnectionString(db.path);
     return db;
   } catch (e) {
     console.log(e);
+    s.setErrorState(e);
   }
 }
 
 async function all(): Promise<Todo[]> {
-  await connect();
+  const db = await connect();
+
   return await db.select('SELECT * FROM todos');
 }
 
