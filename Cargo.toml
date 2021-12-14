@@ -19,4 +19,3 @@ futures = "0.3"
 sqlite = ["sqlx/sqlite"]
 mysql = ["sqlx/mysql"]
 postgres = ["sqlx/postgres"]
-default = ["sqlite"]

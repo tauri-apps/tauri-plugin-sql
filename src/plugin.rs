@@ -77,7 +77,7 @@ impl Connection {
 impl From<&str> for Connection {
     fn from(connect: &str) -> Self {
         let (db_type, details) = connect
-            .split_once(":")
+            .split_once(':')
             .expect("Couldn't parse the connection string for the database! Please ensure that your connection string has a ':' character in it.");
         let db_type = String::from(db_type).to_lowercase();
 
