@@ -236,10 +236,8 @@ async fn load(
         let migrator = Migrator::new(migrations).await?;
         migrator.run(&pool).await?;
     }
-    println!("Locking instance established");
 
     db_instances.0.lock().await.insert(conn.clone(), pool);
-    println!("instance locked");
     Ok(conn)
 }
 
