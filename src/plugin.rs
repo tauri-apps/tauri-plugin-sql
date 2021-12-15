@@ -157,7 +157,7 @@ async fn load(
         Db::create_database(db).await?;
     }
 
-    let pool = Pool::connect(&db).await?;
+    let pool = Pool::connect(db).await?;
 
     if let Some(migrations) = migrations.0.lock().await.remove(db) {
         let migrator = Migrator::new(migrations).await?;
@@ -180,7 +180,7 @@ async fn execute(
     let db = &path_mapper(db);
     let db = instances
         .get_mut(db)
-        .ok_or(Error::DatabaseNotLoaded(db.to_string()))?;
+        .ok_or_else(|| Error::DatabaseNotLoaded(db.to_string()))?;
     let mut query = sqlx::query(&query);
     for value in values {
         if value.is_string() {
@@ -211,7 +211,7 @@ async fn select(
     let db = &path_mapper(db);
     let db = instances
         .get_mut(db)
-        .ok_or(Error::DatabaseNotLoaded(db.to_string()))?;
+        .ok_or_else(|| Error::DatabaseNotLoaded(db.to_string()))?;
     let mut query = sqlx::query(&query);
     for value in values {
         query = query.bind(value);
@@ -293,14 +293,18 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
             } else {
                 serde_json::from_value(config)?
             };
-            #[cfg(feature = "sqlite")]
-            create_dir_all(get_app_path(app));
 
             #[cfg(feature = "sqlite")]
-            let path_mapper = |p: String| -> String {
+            let app_path = get_app_path(app);
+
+            #[cfg(feature = "sqlite")]
+            create_dir_all(&app_path).expect("problems creating App directory");
+
+            #[cfg(feature = "sqlite")]
+            let path_mapper = move |p: String| -> String {
                 format!(
                     "sqlite:{}",
-                    Path::new(get_app_path(app).as_str())
+                    Path::new(&app_path.as_str())
                         .join(p)
                         .to_str()
                         .unwrap()
