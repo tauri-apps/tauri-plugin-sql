@@ -28,7 +28,9 @@
   "scripts": {
     "build": "run-p lint build:esm",
     "build:esm": "tsup webview-src/index.ts --format='esm,cjs' --dts --out-dir webview-dist ",
-    "lint": "eslint --ext ts \"./webview-src/**/*.ts\"",
+    "lint": "run-s lint:*",
+    "lint:webview": "eslint --ext ts \"./webview-src/**/*.ts\"",
+    "lint:rust": "cargo clippy --features sqlite",
     "lint-fix": "eslint --fix --ext ts \"./src/**/*.ts\"",
     "prepublishOnly": "yarn build",
     "pretest": "yarn build"

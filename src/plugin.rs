@@ -315,6 +315,7 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
             let mut lock = instances.0.lock().await;
             for db_url in config.preload {
                 let db_url = &path_mapper(db_url);
+
                 if !Db::database_exists(db_url).await.unwrap_or(false) {
                     Db::create_database(&path_mapper(db_url.to_string())).await?;
                 }
