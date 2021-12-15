@@ -56,19 +56,6 @@ impl Serialize for Error {
 
 type Result<T> = std::result::Result<T, Error>;
 
-struct PathMapper {
-    convert: Box<dyn Fn(&str) -> String>,
-}
-
-#[cfg(feature = "sqlite")]
-fn get_db_path(app_dir: &str, conn: &str) -> String {
-    use std::path::Path;
-    format!(
-        "sqlite:{}",
-        Path::new(app_dir).join(conn).to_str().unwrap().to_string()
-    )
-}
-
 #[cfg(feature = "sqlite")]
 fn get_app_path<R: Runtime>(app: &AppHandle<R>) -> String {
     app.path_resolver()
