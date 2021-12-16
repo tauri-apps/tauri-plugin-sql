@@ -15,11 +15,7 @@ use tauri::{
 };
 use tokio::sync::Mutex;
 
-use std::{
-    collections::HashMap,
-    fs::create_dir_all,
-    path::{Path, PathBuf},
-};
+use std::{collections::HashMap, fs::create_dir_all, path::PathBuf};
 
 #[cfg(feature = "sqlite")]
 type Db = sqlx::sqlite::Sqlite;
@@ -57,22 +53,31 @@ impl Serialize for Error {
 type Result<T> = std::result::Result<T, Error>;
 
 #[cfg(feature = "sqlite")]
-fn get_app_path<R: Runtime>(app: &AppHandle<R>) -> String {
-    app.path_resolver()
-        .app_dir()
-        .unwrap()
-        .as_os_str()
-        .to_str()
-        .unwrap()
-        .to_string()
+/// Resolves the App's **file path** from the `AppHandle` context
+/// object
+fn app_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
+    match app.path_resolver().app_dir() {
+        Some(p) => p,
+        None => panic!("No App path was foundd!"),
+    }
 }
 
 #[cfg(feature = "sqlite")]
-fn extract_connection_string(connection_string: &str) -> &str {
-    connection_string
-        .split_once(':')
-        .expect("Couldn't parse the connection string for the database! Please ensure that your connection string has a ':' character in it.")
-        .1
+/// Maps the user supplied DB connection string to a connection string
+/// with a fully qualified file path to the App's designed "app_path"
+fn path_mapper(app: PathBuf, connection_string: String) -> String {
+    match app
+        .join(
+            connection_string
+                .split_once(':')
+                .expect("Couldn't parse the connection string for DB!")
+                .1,
+        )
+        .to_str()
+    {
+        Some(p) => format!("sqlite:{}", p),
+        None => panic!("Problem creating fully qualified path to Database file!"),
+    }
 }
 
 #[derive(Default)]
@@ -81,7 +86,6 @@ struct DbInstances(Mutex<HashMap<String, Pool<Db>>>);
 struct Migrations(Mutex<HashMap<String, MigrationList>>);
 
 #[derive(Default, Deserialize)]
-
 struct PluginConfig {
     #[serde(default)]
     preload: Vec<String>,
@@ -134,52 +138,52 @@ impl MigrationSource<'static> for MigrationList {
 }
 
 #[command]
-async fn load(
+async fn load<R: Runtime>(
+    app: AppHandle<R>,
     db_instances: State<'_, DbInstances>,
-    path_mapper: State<'_, fn(String) -> String>,
     migrations: State<'_, Migrations>,
     db: String,
 ) -> Result<String> {
-    #[cfg(feature = "sqlite")]
-    let db = &path_mapper(db);
+    // fully qualified DB connection string
+    let fqdb = match cfg!(feature = "sqlite") {
+        true => path_mapper(app_path(&app), db.clone()),
+        false => db.clone(),
+    };
 
     #[cfg(feature = "sqlite")]
-    create_dir_all(
-        PathBuf::from(extract_connection_string(db))
-            .parent()
-            .unwrap(),
-    )
-    .expect("problems creating app directory");
+    create_dir_all(app_path(&app)).expect("Problem creating App directory!");
 
-    let db_exists = Db::database_exists(db).await.unwrap_or(false);
+    let db_exists = Db::database_exists(&fqdb).await.unwrap_or(false);
 
     if !db_exists {
-        Db::create_database(db).await?;
+        Db::create_database(&fqdb).await?;
     }
 
-    let pool = Pool::connect(db).await?;
+    let pool = match Pool::connect(&fqdb).await {
+        Ok(p) => p,
+        Err(e) => panic!("Problem establishing pooled DB connection: {:?}", e),
+    };
 
-    if let Some(migrations) = migrations.0.lock().await.remove(db) {
+    if let Some(migrations) = migrations.0.lock().await.remove(&db) {
         let migrator = Migrator::new(migrations).await?;
         migrator.run(&pool).await?;
     }
 
     db_instances.0.lock().await.insert(db.clone(), pool);
-    Ok(db.to_string())
+    Ok(db)
 }
 
 #[command]
 async fn execute(
-    path_mapper: State<'_, fn(String) -> String>,
     db_instances: State<'_, DbInstances>,
     db: String,
     query: String,
     values: Vec<JsonValue>,
 ) -> Result<(u64, LastInsertId)> {
     let mut instances = db_instances.0.lock().await;
-    let db = &path_mapper(db);
+
     let db = instances
-        .get_mut(db)
+        .get_mut(&db)
         .ok_or_else(|| Error::DatabaseNotLoaded(db.to_string()))?;
     let mut query = sqlx::query(&query);
     for value in values {
@@ -201,16 +205,14 @@ async fn execute(
 
 #[command]
 async fn select(
-    path_mapper: State<'_, fn(String) -> String>,
     db_instances: State<'_, DbInstances>,
     db: String,
     query: String,
     values: Vec<JsonValue>,
 ) -> Result<Vec<HashMap<String, JsonValue>>> {
     let mut instances = db_instances.0.lock().await;
-    let db = &path_mapper(db);
     let db = instances
-        .get_mut(db)
+        .get_mut(&db)
         .ok_or_else(|| Error::DatabaseNotLoaded(db.to_string()))?;
     let mut query = sqlx::query(&query);
     for value in values {
@@ -272,6 +274,12 @@ impl<R: Runtime> Default for TauriSql<R> {
 
 impl<R: Runtime> TauriSql<R> {
     /// Add migrations to a database.
+    ///
+    /// Note: in the case of SQLite, the user will provide a relative file path
+    /// and later during initialization we will change this to a fully qualified
+    /// file path which points to the App's assigned directory but the user provided
+    /// connection string will still be used as the key to the connection pool's
+    /// HashMap
     pub fn add_migrations(mut self, db_url: &str, migrations: Vec<Migration>) -> Self {
         self.migrations
             .as_mut()
@@ -295,44 +303,29 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
             };
 
             #[cfg(feature = "sqlite")]
-            let app_path = get_app_path(app);
-
-            #[cfg(feature = "sqlite")]
-            create_dir_all(&app_path).expect("problems creating App directory");
-
-            #[cfg(feature = "sqlite")]
-            let path_mapper = move |p: String| -> String {
-                format!(
-                    "sqlite:{}",
-                    Path::new(&app_path.as_str())
-                        .join(p)
-                        .to_str()
-                        .unwrap()
-                        .to_string()
-                )
-            };
-
-            #[cfg(not(feature = "sqlite"))]
-            let path_mapper = |p: String| p;
+            create_dir_all(app_path(&app)).expect("problems creating App directory!");
 
             let instances = DbInstances::default();
             let mut lock = instances.0.lock().await;
             for db_url in config.preload {
-                let db_url = &path_mapper(db_url);
+                #[cfg(feature = "sqlite")]
+                let db_url = path_mapper(app_path(app), db_url);
 
-                if !Db::database_exists(db_url).await.unwrap_or(false) {
-                    Db::create_database(&path_mapper(db_url.to_string())).await?;
+                if !Db::database_exists(&db_url).await.unwrap_or(false) {
+                    Db::create_database(&db_url).await?;
                 }
-                let pool = Pool::connect(db_url).await?;
+                let pool = match Pool::connect(&db_url).await {
+                    Ok(p) => p,
+                    Err(e) => panic!("Problem establishing pooled DB connection! {:?}", e),
+                };
 
-                if let Some(migrations) = self.migrations.as_mut().unwrap().remove(db_url) {
+                if let Some(migrations) = self.migrations.as_mut().unwrap().remove(&db_url) {
                     let migrator = Migrator::new(migrations).await?;
                     migrator.run(&pool).await?;
                 }
-                lock.insert(db_url.to_string(), pool);
+                lock.insert(db_url, pool);
             }
             drop(lock);
-            app.manage(path_mapper);
             app.manage(instances);
             app.manage(Migrations(Mutex::new(self.migrations.take().unwrap())));
             Ok(())

@@ -11,4 +11,4 @@ test.db-wal
 *.code-workspace
 .do-devops.json
 
-src/components.d.ts
+components.d.ts
