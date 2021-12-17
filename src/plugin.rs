@@ -37,8 +37,6 @@ pub enum Error {
     Migration(#[from] sqlx::migrate::MigrateError),
     #[error("database {0} not loaded")]
     DatabaseNotLoaded(String),
-    #[error("failed to parse app directory: {0}")]
-    ParseAppDir(String),
 }
 
 impl Serialize for Error {
@@ -56,28 +54,27 @@ type Result<T> = std::result::Result<T, Error>;
 /// Resolves the App's **file path** from the `AppHandle` context
 /// object
 fn app_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
-    match app.path_resolver().app_dir() {
-        Some(p) => p,
-        None => panic!("No App path was foundd!"),
-    }
+    app.path_resolver()
+        .app_dir()
+        .expect("No App path was found!")
 }
 
 #[cfg(feature = "sqlite")]
 /// Maps the user supplied DB connection string to a connection string
 /// with a fully qualified file path to the App's designed "app_path"
-fn path_mapper(app: PathBuf, connection_string: String) -> String {
-    match app
-        .join(
-            connection_string
-                .split_once(':')
-                .expect("Couldn't parse the connection string for DB!")
-                .1,
-        )
-        .to_str()
-    {
-        Some(p) => format!("sqlite:{}", p),
-        None => panic!("Problem creating fully qualified path to Database file!"),
-    }
+fn path_mapper(app_path: PathBuf, connection_string: &str) -> String {
+    let connection_string = connection_string
+        .split_once(':')
+        .expect("Couldn't parse the connection string for DB!")
+        .1;
+
+    format!(
+        "sqlite:{}",
+        &app_path
+            .join(connection_string)
+            .to_str()
+            .expect("Problem creating fully qualified path to Database file!")
+    )
 }
 
 #[derive(Default)]
@@ -146,23 +143,17 @@ async fn load<R: Runtime>(
 ) -> Result<String> {
     // fully qualified DB connection string
     let fqdb = match cfg!(feature = "sqlite") {
-        true => path_mapper(app_path(&app), db.clone()),
+        true => path_mapper(app_path(&app), &db),
         false => db.clone(),
     };
 
     #[cfg(feature = "sqlite")]
     create_dir_all(app_path(&app)).expect("Problem creating App directory!");
 
-    let db_exists = Db::database_exists(&fqdb).await.unwrap_or(false);
-
-    if !db_exists {
-        Db::create_database(&fqdb).await?;
+    if !Db::database_exists(&fqdb).await.unwrap_or(false) {
+        Db::create_database(&fqdb.to_string()).await?;
     }
-
-    let pool = match Pool::connect(&fqdb).await {
-        Ok(p) => p,
-        Err(e) => panic!("Problem establishing pooled DB connection: {:?}", e),
-    };
+    let pool = Pool::connect(&fqdb).await?;
 
     if let Some(migrations) = migrations.0.lock().await.remove(&db) {
         let migrator = Migrator::new(migrations).await?;
@@ -307,23 +298,27 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
 
             let instances = DbInstances::default();
             let mut lock = instances.0.lock().await;
-            for db_url in config.preload {
+            for db in config.preload {
                 #[cfg(feature = "sqlite")]
-                let db_url = path_mapper(app_path(app), db_url);
+                // fully qualified DB connection string
+                let fqdb = match cfg!(feature = "sqlite") {
+                    true => path_mapper(app_path(&app), &db),
+                    false => db.clone(),
+                };
 
-                if !Db::database_exists(&db_url).await.unwrap_or(false) {
-                    Db::create_database(&db_url).await?;
+                if !Db::database_exists(&fqdb).await.unwrap_or(false) {
+                    Db::create_database(&fqdb).await?;
                 }
-                let pool = match Pool::connect(&db_url).await {
+                let pool = match Pool::connect(&fqdb).await {
                     Ok(p) => p,
                     Err(e) => panic!("Problem establishing pooled DB connection! {:?}", e),
                 };
 
-                if let Some(migrations) = self.migrations.as_mut().unwrap().remove(&db_url) {
+                if let Some(migrations) = self.migrations.as_mut().unwrap().remove(&db) {
                     let migrator = Migrator::new(migrations).await?;
                     migrator.run(&pool).await?;
                 }
-                lock.insert(db_url, pool);
+                lock.insert(db, pool);
             }
             drop(lock);
             app.manage(instances);
