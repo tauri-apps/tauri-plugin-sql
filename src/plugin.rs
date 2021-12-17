@@ -309,10 +309,7 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
                 if !Db::database_exists(&fqdb).await.unwrap_or(false) {
                     Db::create_database(&fqdb).await?;
                 }
-                let pool = match Pool::connect(&fqdb).await {
-                    Ok(p) => p,
-                    Err(e) => panic!("Problem establishing pooled DB connection! {:?}", e),
-                };
+                let pool = Pool::connect(&fqdb).await?;
 
                 if let Some(migrations) = self.migrations.as_mut().unwrap().remove(&db) {
                     let migrator = Migrator::new(migrations).await?;
