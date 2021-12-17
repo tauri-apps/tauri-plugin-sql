@@ -175,7 +175,7 @@ async fn execute(
 
     let db = instances
         .get_mut(&db)
-        .ok_or_else(|| Error::DatabaseNotLoaded(db.to_string()))?;
+        .ok_or(Error::DatabaseNotLoaded(db.to_string()))?;
     let mut query = sqlx::query(&query);
     for value in values {
         if value.is_string() {
@@ -204,7 +204,7 @@ async fn select(
     let mut instances = db_instances.0.lock().await;
     let db = instances
         .get_mut(&db)
-        .ok_or_else(|| Error::DatabaseNotLoaded(db.to_string()))?;
+        .ok_or(Error::DatabaseNotLoaded(db.to_string()))?;
     let mut query = sqlx::query(&query);
     for value in values {
         query = query.bind(value);
