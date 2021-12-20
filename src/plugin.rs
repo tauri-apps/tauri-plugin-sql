@@ -70,7 +70,7 @@ fn path_mapper(app_path: PathBuf, connection_string: &str) -> String {
 
     format!(
         "sqlite:{}",
-        &app_path
+        app_path
             .join(connection_string)
             .to_str()
             .expect("Problem creating fully qualified path to Database file!")
