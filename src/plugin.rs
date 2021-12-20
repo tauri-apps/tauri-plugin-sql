@@ -62,16 +62,17 @@ fn app_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
 #[cfg(feature = "sqlite")]
 /// Maps the user supplied DB connection string to a connection string
 /// with a fully qualified file path to the App's designed "app_path"
-fn path_mapper(app_path: PathBuf, connection_string: &str) -> String {
-    let connection_string = connection_string
-        .split_once(':')
-        .expect("Couldn't parse the connection string for DB!")
-        .1;
+fn path_mapper(mut app_path: PathBuf, connection_string: &str) -> String {
+    app_path.push(
+        connection_string
+            .split_once(':')
+            .expect("Couldn't parse the connection string for DB!")
+            .1,
+    );
 
     format!(
         "sqlite:{}",
         app_path
-            .join(connection_string)
             .to_str()
             .expect("Problem creating fully qualified path to Database file!")
     )
@@ -141,17 +142,16 @@ async fn load<R: Runtime>(
     migrations: State<'_, Migrations>,
     db: String,
 ) -> Result<String> {
-    // fully qualified DB connection string
-    let fqdb = match cfg!(feature = "sqlite") {
-        true => path_mapper(app_path(&app), &db),
-        false => db.clone(),
-    };
+    #[cfg(feature = "sqlite")]
+    let fqdb = path_mapper(app_path(&app), &db);
+    #[cfg(not(feature = "sqlite"))]
+    let fqdb = db.clone();
 
     #[cfg(feature = "sqlite")]
     create_dir_all(app_path(&app)).expect("Problem creating App directory!");
 
     if !Db::database_exists(&fqdb).await.unwrap_or(false) {
-        Db::create_database(&fqdb.to_string()).await?;
+        Db::create_database(&fqdb).await?;
     }
     let pool = Pool::connect(&fqdb).await?;
 
@@ -173,9 +173,7 @@ async fn execute(
 ) -> Result<(u64, LastInsertId)> {
     let mut instances = db_instances.0.lock().await;
 
-    let db = instances
-        .get_mut(&db)
-        .ok_or(Error::DatabaseNotLoaded(db.to_string()))?;
+    let db = instances.get_mut(&db).ok_or(Error::DatabaseNotLoaded(db))?;
     let mut query = sqlx::query(&query);
     for value in values {
         if value.is_string() {
@@ -202,9 +200,7 @@ async fn select(
     values: Vec<JsonValue>,
 ) -> Result<Vec<HashMap<String, JsonValue>>> {
     let mut instances = db_instances.0.lock().await;
-    let db = instances
-        .get_mut(&db)
-        .ok_or(Error::DatabaseNotLoaded(db.to_string()))?;
+    let db = instances.get_mut(&db).ok_or(Error::DatabaseNotLoaded(db))?;
     let mut query = sqlx::query(&query);
     for value in values {
         query = query.bind(value);
@@ -265,12 +261,6 @@ impl<R: Runtime> Default for TauriSql<R> {
 
 impl<R: Runtime> TauriSql<R> {
     /// Add migrations to a database.
-    ///
-    /// Note: in the case of SQLite, the user will provide a relative file path
-    /// and later during initialization we will change this to a fully qualified
-    /// file path which points to the App's assigned directory but the user provided
-    /// connection string will still be used as the key to the connection pool's
-    /// HashMap
     pub fn add_migrations(mut self, db_url: &str, migrations: Vec<Migration>) -> Self {
         self.migrations
             .as_mut()
@@ -294,17 +284,15 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
             };
 
             #[cfg(feature = "sqlite")]
-            create_dir_all(app_path(&app)).expect("problems creating App directory!");
+            create_dir_all(app_path(app)).expect("problems creating App directory!");
 
             let instances = DbInstances::default();
             let mut lock = instances.0.lock().await;
             for db in config.preload {
                 #[cfg(feature = "sqlite")]
-                // fully qualified DB connection string
-                let fqdb = match cfg!(feature = "sqlite") {
-                    true => path_mapper(app_path(&app), &db),
-                    false => db.clone(),
-                };
+                let fqdb = path_mapper(app_path(app), &db);
+                #[cfg(not(feature = "sqlite"))]
+                let fqdb = db.clone();
 
                 if !Db::database_exists(&fqdb).await.unwrap_or(false) {
                     Db::create_database(&fqdb).await?;
