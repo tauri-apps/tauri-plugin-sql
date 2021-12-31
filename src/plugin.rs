@@ -15,7 +15,10 @@ use tauri::{
 };
 use tokio::sync::Mutex;
 
-use std::{collections::HashMap, fs::create_dir_all, path::PathBuf};
+use std::collections::HashMap;
+
+#[cfg(feature = "sqlite")]
+use std::{fs::create_dir_all, path::PathBuf};
 
 #[cfg(feature = "sqlite")]
 type Db = sqlx::sqlite::Sqlite;
@@ -137,6 +140,7 @@ impl MigrationSource<'static> for MigrationList {
 
 #[command]
 async fn load<R: Runtime>(
+    #[allow(unused_variables)]
     app: AppHandle<R>,
     db_instances: State<'_, DbInstances>,
     migrations: State<'_, Migrations>,
@@ -261,6 +265,7 @@ impl<R: Runtime> Default for TauriSql<R> {
 
 impl<R: Runtime> TauriSql<R> {
     /// Add migrations to a database.
+    #[must_use]
     pub fn add_migrations(mut self, db_url: &str, migrations: Vec<Migration>) -> Self {
         self.migrations
             .as_mut()

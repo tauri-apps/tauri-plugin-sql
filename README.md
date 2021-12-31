@@ -74,7 +74,7 @@ Use within your JS/TS:
 ```ts
 import Database from 'tauri-plugin-sql-api'
 
-// sqlite
+// sqlite. The path is relative to `tauri::api::path::BaseDirectory::App`.
 const db = await Database.load('sqlite:test.db')
 // mysql
 const db = await Database.load('mysql://user:pass@host/database')

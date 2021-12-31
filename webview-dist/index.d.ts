@@ -26,6 +26,11 @@ declare class Database {
      * A static initializer which connects to the underlying database
      * and returns a `Database` instance once a connecion to the database
      * is established.
+     *
+     * # Sqlite
+     *
+     * The path is relative to `tauri::api::path::BaseDirectory::App` and must start with `sqlite:`.
+     *
      * ```ts
      * const db = await Database.load("sqlite:test.db");
      * ```
@@ -37,6 +42,10 @@ declare class Database {
      * A static initializer which synchronously returns an instance of
      * the Database class while deferring the actual database connection
      * until the first invokation or selection on the database.
+     *
+     * # Sqlite
+     *
+     * The path is relative to `tauri::api::path::BaseDirectory::App` and must start with `sqlite:`.
      *
      * ```ts
      * const db = Database.get("sqlite:test.db");
