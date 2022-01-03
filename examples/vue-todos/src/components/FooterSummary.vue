@@ -14,9 +14,12 @@ const s = useStore();
       <span class="italic" v-else> no items in your TODO list </span>
     </div>
     <div class="flex">
-      <i-mdi:database-check-outline v-if="s.ready" class="text-green-700" />
-      <i-mdi:database-remove-outline class="text-red-600" v-else />
+      <i-mdi:database-check-outline
+        v-if="s.ready"
+        class="text-green-700"
+        :title="s.dbConnectionString"
+      />
+      <i-mdi:database-remove-outline class="text-red-600" v-else :title="s.dbError" />
     </div>
   </div>
-  <div v-if="s.dbError" class="text-red-500">{{ s.dbError }}</div>
 </template>

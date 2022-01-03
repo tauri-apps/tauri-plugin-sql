@@ -1,31 +1,62 @@
 {
   "name": "tauri-plugin-sql-api",
   "version": "0.1.0",
-  "authors": [
-    "Tauri Programme within The Commons Conservancy"
-  ],
   "description": "API wrapper for the Tauri Plugin for SQL databases",
-  "browser": "webview-dist/index.min.js",
-  "module": "webview-dist/index.mjs",
-  "types": "webview-dist/index.d.ts",
+  "license": "MIT",
+  "module": "webview-dist/index.js",
+  "browser": "webview-dist/index.js",
+  "main": "webview-dist/index.cjs",
+  "exports": {
+    ".": {
+      "import": "./webview-dist/index.js",
+      "require": "./webview-dist/index.cjs"
+    }
+  },
+  "types": "./webview-dist/index.d.ts",
+  "type": "module",
   "files": [
     "webview-dist"
   ],
+  "tsup": {
+    "entry": [
+      "./webview-dist/index.ts"
+    ],
+    "sourcemap": true,
+    "clean": true,
+    "dts": true
+  },
   "scripts": {
-    "build": "rollup -c ./webview-src/rollup.config.js",
+    "build": "run-p lint build:esm",
+    "build:esm": "tsup webview-src/index.ts --format='esm,cjs' --dts --out-dir webview-dist ",
+    "lint": "run-s lint:*",
+    "lint:webview": "eslint --ext ts \"./webview-src/**/*.ts\"",
+    "lint:rust": "cargo clippy --features sqlite",
+    "lint-fix": "eslint --fix --ext ts \"./src/**/*.ts\"",
     "prepublishOnly": "yarn build",
     "pretest": "yarn build"
-  },
-  "license": "MIT",
-  "devDependencies": {
-    "@rollup/plugin-node-resolve": "13.1.2",
-    "@rollup/plugin-typescript": "8.3.0",
-    "rollup": "2.62.0",
-    "rollup-plugin-terser": "7.0.2",
-    "typescript": "4.5.4"
   },
   "dependencies": {
     "@tauri-apps/api": "1.0.0-beta.8",
     "tslib": "2.3.1"
-  }
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "5.6.0",
+    "@typescript-eslint/parser": "5.6.0",
+    "eslint": "8.4.1",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-config-standard-with-typescript": "21.0.1",
+    "eslint-plugin-import": "2.25.3",
+    "eslint-plugin-lodash-template": "0.19.0",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-prettier": "4.0.0",
+    "eslint-plugin-promise": "5.2.0",
+    "eslint-plugin-security": "1.4.0",
+    "npm-run-all": "4.1.5",
+    "prettier": "2.5.1",
+    "tsup": "5.11.1",
+    "typescript": "4.5.4"
+  },
+  "authors": [
+    "Tauri Programme within The Commons Conservancy"
+  ]
 }

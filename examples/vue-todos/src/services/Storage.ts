@@ -2,34 +2,25 @@ import Database from 'tauri-plugin-sql-api';
 import type { QueryResult } from 'tauri-plugin-sql-api';
 import { v4 } from 'uuid';
 import type { Todo, uuid } from '../models/Todo';
+import { useStore } from '../stores/todos';
 
 let db: null | Database = null;
-const load = async (): Promise<Database | string> => {
-  if (db) {
-    return;
-  }
+
+async function connect(): Promise<Database> {
+  const s = useStore();
   try {
-    const instance = await Database.load('sqlite:test.db');
-    db = instance;
+    db = await Database.load('sqlite:test.db');
+    s.setDbConnectionString(db.path);
     return db;
-  } catch (err) {
-    return err?.message || String(err);
+  } catch (e) {
+    console.log(e);
+    s.setErrorState(e);
   }
-};
-
-export type DbConnection = { error: string; db: false } | { db: Database; error: false };
-
-async function connect(): Promise<DbConnection> {
-  const result = await load();
-  return typeof result === 'string'
-    ? result.includes('Cannot read properties')
-      ? { error: '', db: false }
-      : { error: result, db: false }
-    : { db: result, error: false };
 }
 
 async function all(): Promise<Todo[]> {
-  await load();
+  const db = await connect();
+
   return await db.select('SELECT * FROM todos');
 }
 
@@ -61,7 +52,6 @@ async function update(todo: Todo): Promise<Todo> {
 }
 
 async function remove(id: uuid): Promise<QueryResult> {
-  // TODO: this is almost surely incorrect but exporting `QueryResult` seems to disrupt backend
   return await db.execute('DELETE FROM todos WHERE id = $1', [id]);
 }
 

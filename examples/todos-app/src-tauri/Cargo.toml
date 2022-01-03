@@ -2,11 +2,11 @@
 name = "todos-app"
 version = "1.1.0"
 description = "Handy TODOs app!"
-authors = [ "Parker McMullin <parker.mcmullin01@gmail.com>" ]
+authors = ["Parker McMullin <parker.mcmullin01@gmail.com>"]
 license = ""
 repository = ""
 default-run = "todos-app"
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -20,5 +20,5 @@ tauri = { version = "1.0.0-beta.8", features = ["api-all"] }
 tauri-plugin-sql = { path = "../../..", features = ["sqlite"] }
 
 [features]
-default = [ "custom-protocol" ]
-custom-protocol = [ "tauri/custom-protocol" ]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
