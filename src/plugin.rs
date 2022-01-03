@@ -140,8 +140,7 @@ impl MigrationSource<'static> for MigrationList {
 
 #[command]
 async fn load<R: Runtime>(
-    #[allow(unused_variables)]
-    app: AppHandle<R>,
+    #[allow(unused_variables)] app: AppHandle<R>,
     db_instances: State<'_, DbInstances>,
     migrations: State<'_, Migrations>,
     db: String,
