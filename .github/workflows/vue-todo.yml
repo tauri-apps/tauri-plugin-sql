@@ -44,7 +44,6 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: build
-      run: yarn && yarn build
 
     - name: Build example vue-todo application
       env:
