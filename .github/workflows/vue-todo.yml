@@ -1,0 +1,44 @@
+on:
+  push:
+    branches:
+      - features/*
+  pull_request:
+    branches:
+      - dev
+    paths-ignore:
+      - 'webview-src/**'
+      - 'webview-dist/**'
+      - 'examples/todos-app/**'
+
+jobs:
+  test-tauri:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup node
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12
+    - name: install Rust stable
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - name: install webkit2gtk (ubuntu only)
+      if: matrix.platform == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y webkit2gtk-4.0
+    - name: install sql-plugin
+      run: yarn && yarn build
+    - uses: tauri-apps/tauri-action@v0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      name: install example vue-todo application
+      run: |
+        cd examples/vue-todo
+        yarn && yarn build
