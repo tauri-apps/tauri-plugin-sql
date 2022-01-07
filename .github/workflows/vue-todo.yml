@@ -1,8 +1,5 @@
 name: example app
 
-env:
-  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-
 on:
   workflow_dispatch:
   push:
@@ -18,6 +15,8 @@ on:
 
 jobs:
   test-tauri:
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     strategy:
       fail-fast: false
       matrix:
