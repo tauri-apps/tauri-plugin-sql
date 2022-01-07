@@ -3,7 +3,7 @@
   windows_subsystem = "windows"
 )]
 
-use tauri::{MenuItem, Menu, Submenu};
+use tauri::{Menu, MenuItem, Submenu};
 use tauri_plugin_sql::{Migration, MigrationKind, TauriSql};
 
 fn main() {
