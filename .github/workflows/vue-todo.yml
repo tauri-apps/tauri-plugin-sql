@@ -45,7 +45,7 @@ jobs:
     - name: install example vue-todo application
       env:
         projectPath: examples/vue-todo
-        configPath: examples/vue-todo/src-tauri
+        distPath: examples/vue-todo/dist
 
       run: yarn && yarn build
     - uses: tauri-apps/tauri-action@v0
