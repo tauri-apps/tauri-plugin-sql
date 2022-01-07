@@ -38,7 +38,9 @@ jobs:
     - uses: tauri-apps/tauri-action@v0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      name: install example vue-todo application
-      run: |
-        cd examples/vue-todo
-        yarn && yarn build
+    - name: install example vue-todo application
+      working-directory: examples/vue-todo
+      run: yarn && yarn build
+    - uses: tauri-apps/tauri-action@v0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
