@@ -1,4 +1,4 @@
-name: example app
+name: Example App (Vue)
 
 on:
   workflow_dispatch:
@@ -23,29 +23,35 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v2
+
     - name: setup node
       uses: actions/setup-node@v1
       with:
-        node-version: 12
+        node-version: 16
+
     - name: install Rust stable
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
+
     - name: install webkit2gtk (ubuntu only)
       if: matrix.platform == 'ubuntu-latest'
       run: |
         sudo apt-get update
         sudo apt-get install -y webkit2gtk-4.0
-    - name: install sql-plugin
+
+    - name: Build Tauri Plugin
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
       run: yarn && yarn build
-    - uses: tauri-apps/tauri-action@v0
-      env:
-        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: install example vue-todo application
+
+    - name: Build example vue-todo application
       env:
         projectPath: examples/vue-todo
         distPath: examples/vue-todo/dist
-
       run: yarn && yarn build
-    - uses: tauri-apps/tauri-action@v0
+      uses: tauri-apps/tauri-action@v0
+
+    - name: Lint TODO application (rust and typescript)
+      run: yarn lint

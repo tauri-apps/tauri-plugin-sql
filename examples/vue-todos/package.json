@@ -11,6 +11,7 @@
     "lint": "run-p lint:*",
     "lint:eslint": "npx eslint src --ext ts --fix ",
     "lint:tsc": "npx tsc --noEmit",
+    "lint:clippy": "cargo clippy --features sqlite",
     "preview": "run-p preview:*",
     "preview:vite": "vite preview",
     "preview:tauri": "npx tauri dev",
