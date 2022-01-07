@@ -15,23 +15,22 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@vueuse/components": "^7.4.1",
-    "@vueuse/core": "^7.4.1",
+    "@vueuse/components": "^7.5.3",
+    "@vueuse/core": "^7.5.3",
     "pinia": "^2.0.9",
     "tauri-plugin-sql-api": "link:../..",
     "uuid": "^8.3.2",
     "vue": "^3.2.26"
   },
   "devDependencies": {
-    "@iconify/json": "^1.1.448",
+    "@iconify/json": "^1.1.453",
     "@tauri-apps/cli": "^1.0.0-beta.10",
-    "@types/uuid": "^8.3.3",
-    "@typescript-eslint/eslint-plugin": "^5.8.1",
-    "@typescript-eslint/parser": "^5.8.1",
+    "@types/uuid": "^8.3.4",
+    "@typescript-eslint/eslint-plugin": "^5.9.0",
+    "@typescript-eslint/parser": "^5.9.0",
     "@vitejs/plugin-vue": "^1.10.2",
-    "concurrently": "^6.5.1",
     "cross-env": "^7.0.3",
-    "eslint": "^8.5.0",
+    "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier-vue": "^3.1.0",
     "eslint-plugin-vue": "^8.2.0",
@@ -41,9 +40,9 @@
     "typescript": "^4.5.4",
     "unplugin-icons": "^0.13.0",
     "unplugin-vue-components": "^0.17.11",
-    "vite": "^2.7.9",
+    "vite": "^2.7.10",
     "vite-plugin-windicss": "^1.6.1",
-    "vue-tsc": "^0.30.1",
-    "windicss": "^3.4.1"
+    "vue-tsc": "^0.30.2",
+    "windicss": "^3.4.2"
   }
 }

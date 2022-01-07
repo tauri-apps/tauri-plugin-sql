@@ -15,7 +15,7 @@ defineProps({
       <span v-if="s.incomplete.length !== 0">
         {{ s.incomplete.length }} item{{ s.incomplete.length === 1 ? '' : 's' }} left
       </span>
-      <span class="italic" v-else> no items in your TODO list </span>
+      <span class="italic" v-else> no todo items </span>
     </div>
     <div class="flex flex-row space-x-2 col-span-6 filters justify-center">
       <div
