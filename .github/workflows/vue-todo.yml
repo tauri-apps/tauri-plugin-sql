@@ -1,3 +1,5 @@
+name: example app
+
 on:
   workflow_dispatch:
   push:
