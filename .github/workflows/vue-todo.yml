@@ -1,5 +1,8 @@
 name: example app
 
+env:
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+
 on:
   workflow_dispatch:
   push:
