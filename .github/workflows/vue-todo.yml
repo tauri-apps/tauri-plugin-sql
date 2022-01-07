@@ -50,7 +50,6 @@ jobs:
       env:
         projectPath: examples/vue-todo
         distPath: examples/vue-todo/dist
-      run: yarn && yarn build
       uses: tauri-apps/tauri-action@v0
 
     - name: Lint TODO application (rust and typescript)
