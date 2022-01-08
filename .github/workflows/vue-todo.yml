@@ -69,7 +69,7 @@ jobs:
 
     - name: Build Example App
       run: |
-        cd ./examples/vue/todos/
+        cd ./examples/vue-todos/
         pnpm run build 
 
     - name: Cache NPM deps for the Example App
