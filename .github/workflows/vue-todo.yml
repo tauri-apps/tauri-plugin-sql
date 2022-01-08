@@ -64,7 +64,7 @@ jobs:
     - name: Install NPM dependencies
       run: |
         cd ./examples/vue-todos/
-        npm i -g pnpm &
+        npm i -g pnpm
         pnpm install --ignore-scripts
 
     - name: Build Example App
