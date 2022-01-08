@@ -25,7 +25,13 @@ pnpm run dev
 
 This will boot up the ViteJS bundler for the frontend and then open up dev mode for Tauri in the backend. You will see a native window popup with the application that looks something like this:
 
-![app look and feel](./docs/app.gif)
+| Mac OS                               |
+| ------------------------------------ |
+| ![app look and feel](./docs/app.gif) |
+
+| Windows                                      | Linux                                       |
+| -------------------------------------------- | ------------------------------------------- |
+| ![app look and feel](./docs/windows-app.png) | ![app look and feel](./docs/ubuntu-app.png) |
 
 Features: 
 1. **Add a new todo** in input and press enter or plus button
@@ -42,6 +48,10 @@ We've added a system tray as well to show how this can interact with the main wi
 
 ![mac OS system tray](./docs/mac-system-tray.gif)
 
+| Windows                                                | Ubuntu                                               |
+| ------------------------------------------------------ | ---------------------------------------------------- |
+| ![windows system tray](./docs/windows-system-tray.png) | ![ubuntu system tray](./docs/ubuntu-system-tray.png) |
+
 ### Frontend Only
 
 If you want, you can startup the frontend only and get full hot-module replacement as well as frontend state management while you work. You can do this with:
@@ -50,9 +60,7 @@ If you want, you can startup the frontend only and get full hot-module replaceme
 pnpm run dev:frontend
 ```
 
-This will start the ViteJS bundler running in **dev** mode and provide the UI at `localhost:3000`. The screen will look something like this:
-
-![frontend only browser view](./docs/frontend-only.png)
+This will start the ViteJS bundler running in **dev** mode and provide the UI at `localhost:3000`.
 
 > Note the red icon for DB connection because, as expected, SQLite is not available here but you can add and remove TODO's as they are being stored in memory.
 
