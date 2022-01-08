@@ -69,6 +69,7 @@ jobs:
 
     - name: Build Example App
       run: |
+        pnpm run build
         cd ./examples/vue-todos/
         pnpm run build 
 
