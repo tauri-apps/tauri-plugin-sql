@@ -40,6 +40,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y webkit2gtk-4.0
 
+
     - name: Cache cargo registry
       uses: actions/cache@v2
       with:
@@ -70,9 +71,17 @@ jobs:
         restore-keys: |
           ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
 
+    - name: Build Plugin (with sqlite feature)
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --features sqlite --release
+
     - name: Build example application (vue-todo)
       working-directory: ./examples/vue-todo/
-      run: npm run build
+      run: |
+        npm install
+        npm run build
 
     - name: Lint TODO application (rust and typescript)
       run: npm run lint
