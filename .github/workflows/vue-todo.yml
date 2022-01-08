@@ -6,9 +6,6 @@ on:
     branches:
       - features/*
   pull_request:
-    branches:
-      - main
-      - dev
     paths-ignore:
       - 'webview-src/**'
       - 'webview-dist/**'
@@ -39,7 +36,7 @@ jobs:
       if: matrix.platform == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y webkit2gtk-4.0 
+        sudo apt-get install -y webkit2gtk-4.0
 
     - name: Cache cargo index
       uses: actions/cache@v2
@@ -51,20 +48,21 @@ jobs:
         restore-keys: |
           ${{ matrix.os }}-${{ matrix.rust }}-cargo-index-${{ hashFiles('**/Cargo.toml') }}
 
-    - name: Cache cargo target
+    - name: Cache NPM deps for the Example App
       uses: actions/cache@v2
       with:
-        path: ${{ matrix.project}}/target
-        # Add date to the cache to keep it up to date
-        key: ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}-${{ env.CURRENT_DATE }}
-        # Restore from outdated cache for speed
-        restore-keys: |
-          ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
+        path: ~/node_modules
+
+    - name: Cache NPM deps for the Example App
+      uses: actions/cache@v2
+      with:
+        path: ~/examples/vue-todos/node_modules
 
     - name: Install NPM dependencies
       run: |
-        cd ./examples/vue-todos/
         npm i -g pnpm
+        pnpm install --ignore-scripts
+        cd ./examples/vue-todos/
         pnpm install --ignore-scripts
 
     - name: Build Example App
@@ -72,11 +70,6 @@ jobs:
         pnpm run build
         cd ./examples/vue-todos/
         pnpm run build 
-
-    - name: Cache NPM deps for the Example App
-      uses: actions/cache@v2
-      with:
-        path: ~/examples/vue-todos/node_modules
 
     - name: Lint TODO application (rust and typescript)
       run: |
