@@ -43,7 +43,7 @@ fn main() {
           window.hide().unwrap();
         }
         "quit" => {
-          std::process::exit(0);
+          app.exit(0);
         }
         _ => {}
       },
