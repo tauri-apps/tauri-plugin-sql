@@ -33,23 +33,21 @@ jobs:
     - name: Install NPM dependencies
       run: |
         npm install --ignore-scripts
+        npm run build --if-present
         cd examples/vue-todo
         npm install --ignore-scripts
+        npm run build --if-present
 
     - name: Cache NPM deps for the Plugin's Webview
       uses: actions/cache@v2
       with:
-        path: ~/.npm
-        key: npm-${{ hashFiles('package-lock.json') }}
-        restore-keys: npm-
+        path: ~/node_modules
+
 
     - name: Cache NPM deps for the Example App
       uses: actions/cache@v2
       with:
-        path: ~/examples/vue-todo/.npm
-        key: npm-${{ hashFiles('package-lock.json') }}
-        restore-keys: npm-
-
+        path: ~/examples/vue-todo/node_modules
 
     - name: Install Rust stable
       uses: actions-rs/toolchain@v1
