@@ -61,16 +61,7 @@ jobs:
         pnpm install --ignore-scripts
         cd ./examples/vue-todos/
         pnpm install --ignore-scripts
-    
-    - name: Cache NPM deps for web-view
-      uses: actions/cache@v2
-
-    - name: Cache NPM deps Example App
-      uses: actions/cache@v2
-      with:
-        path: ~/examples/vue-todos/
-        key: node-modules-${{ hashFiles('package.json') }}
-
+  
     - name: Build Example App
       run: |
         pnpm run build
