@@ -62,10 +62,10 @@ jobs:
           ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
 
     - name: Install NPM dependencies and Build App
+      working-directory: ./examples/vue-todo/
       run: |
-        cd examples/vue-todo
         pnpm install --ignore-scripts
-        pnpm run build --if-present
+        pnpm run build
 
     - name: Cache NPM deps for the Example App
       uses: actions/cache@v2
