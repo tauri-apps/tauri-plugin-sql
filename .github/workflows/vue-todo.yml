@@ -62,6 +62,7 @@ jobs:
           ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
 
     - name: Install NPM dependencies and Build App
+      working-directory: ./examples/vue-todo/
       run: |
         npm i -g pnpm
         pnpm install --ignore-scripts
