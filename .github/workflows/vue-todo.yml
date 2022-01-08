@@ -63,12 +63,14 @@ jobs:
 
     - name: Install NPM dependencies
       run: |
-        cd ./examples/vue-todos
-        npm i -g pnpm
+        cd ./examples/vue-todos/
+        npm i -g pnpm &
         pnpm install --ignore-scripts
-         
+
     - name: Build Example App
-      run: pnpm run build
+      run: |
+        cd ./examples/vue/todos/
+        pnpm run build 
 
     - name: Cache NPM deps for the Example App
       uses: actions/cache@v2
