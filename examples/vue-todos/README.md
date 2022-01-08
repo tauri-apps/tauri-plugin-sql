@@ -4,16 +4,16 @@ Another TODO app but with VueJS 3.x and the ViteJS bundler.
 
 ## Installation
 
-This was built with the **pnpm** package manager in mind but feel free to use whatever you like:
+This was built with the **pnpm** package manager but Yarn should work as well:
 
 ```bash
 # pnpm
 pnpm install
 # yarn
 yarn install
-# npm
-npm install
 ```
+
+> Note: due to the more limited support of workspaces, do no use **npm** to install
 
 ## Development
 

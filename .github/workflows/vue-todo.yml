@@ -29,25 +29,7 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: 16
-
-    - name: Install NPM dependencies
-      run: |
-        npm install --ignore-scripts
-        npm run build --if-present
-        cd examples/vue-todo
-        npm install --ignore-scripts
-        npm run build --if-present
-
-    - name: Cache NPM deps for the Plugin's Webview
-      uses: actions/cache@v2
-      with:
-        path: ~/node_modules
-
-    - name: Cache NPM deps for the Example App
-      uses: actions/cache@v2
-      with:
-        path: ~/examples/vue-todo/node_modules
-
+    
     - name: Install Rust stable
       uses: actions-rs/toolchain@v1
       with:
@@ -57,18 +39,7 @@ jobs:
       if: matrix.platform == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y webkit2gtk-4.0
-
-
-    - name: Cache cargo registry
-      uses: actions/cache@v2
-      with:
-        path: ~/.cargo/registry
-        # Add date to the cache to keep it up to date
-        key: ${{ matrix.os }}-${{ matrix.rust }}-cargo-registry-${{ hashFiles('**/Cargo.toml') }}-${{ env.CURRENT_DATE }}
-        # Restore from outdated cache for speed
-        restore-keys: |
-          ${{ matrix.os }}-${{ matrix.rust }}-cargo-registry-${{ hashFiles('**/Cargo.toml') }}
+        sudo apt-get install -y webkit2gtk-4.0 
 
     - name: Cache cargo index
       uses: actions/cache@v2
@@ -90,9 +61,17 @@ jobs:
         restore-keys: |
           ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
 
-    - name: Build example application (vue-todo)
-      working-directory: ./examples/vue-todo/
-      run: npm run build
+    - name: Install NPM dependencies and Build App
+      run: |
+        cd examples/vue-todo
+        pnpm install --ignore-scripts
+        pnpm run build --if-present
+
+    - name: Cache NPM deps for the Example App
+      uses: actions/cache@v2
+      with:
+        path: ~/examples/vue-todo/node_modules
 
     - name: Lint TODO application (rust and typescript)
+      working-directory: ./examples/vue-todo/
       run: npm run lint
