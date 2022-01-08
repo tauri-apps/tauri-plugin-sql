@@ -48,20 +48,13 @@ jobs:
         restore-keys: |
           ${{ matrix.os }}-${{ matrix.rust }}-cargo-index-${{ hashFiles('**/Cargo.toml') }}
 
-
-
-    - name: Cache NPM deps for the Example App
-      uses: actions/cache@v2
-      with:
-        path: ~/examples/vue-todos/node_modules
-
     - name: Install NPM dependencies
       run: |
         npm i -g pnpm
         pnpm install --ignore-scripts
         cd ./examples/vue-todos/
         pnpm install --ignore-scripts
-  
+
     - name: Build Example App
       run: |
         pnpm run build
