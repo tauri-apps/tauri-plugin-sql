@@ -74,7 +74,7 @@ jobs:
       # env:
       #   projectPath: examples/vue-todo
       #   distPath: examples/vue-todo/dist
-      working-directory: examples/vue-todo
+      working-directory: ./examples/vue-todo/
       run: yarn build
 
     - name: Lint TODO application (rust and typescript)
