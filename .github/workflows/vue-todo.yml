@@ -7,6 +7,7 @@ on:
       - features/*
   pull_request:
     branches:
+      - main
       - dev
     paths-ignore:
       - 'webview-src/**'
@@ -29,17 +30,6 @@ jobs:
       with:
         node-version: 16
 
-    - name: Install Rust stable
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-
-    - name: Install webkit2gtk (ubuntu only)
-      if: matrix.platform == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y webkit2gtk-4.0
-
     - name: Install NPM dependencies
       run: |
         npm ci --ignore-scripts
@@ -58,6 +48,19 @@ jobs:
         path: ~/examples/vue-todo/.npm
         key: npm-${{ hashFiles('package-lock.json') }}
         restore-keys: npm-
+
+
+    - name: Install Rust stable
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+
+    - name: Install webkit2gtk (ubuntu only)
+      if: matrix.platform == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y webkit2gtk-4.0
+
 
     - name: Cache cargo registry
       uses: actions/cache@v2
