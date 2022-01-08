@@ -71,10 +71,8 @@ jobs:
           ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
 
     - name: Build example application (vue-todo)
-      env:
-        projectPath: examples/vue-todo
-        distPath: examples/vue-todo/dist
-      uses: tauri-apps/tauri-action@v0
+      working-directory: ./examples/vue-todo/
+      run: npm run build
 
     - name: Lint TODO application (rust and typescript)
-      run: yarn lint
+      run: npm run lint
