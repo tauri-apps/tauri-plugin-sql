@@ -28,8 +28,12 @@ fn main() {
   );
   let menu = Menu::new().add_submenu(submenu);
 
-  tauri::Builder::default()
-    .menu(menu)
+  #[cfg(not(target_os = "macos"))]
+  let builder = tauri::Builder::default();
+  #[cfg(target_os = "macos")]
+  let builder = tauri::Builder::default().menu(menu);
+
+  builder
     .system_tray(tray)
     .on_system_tray_event(|app, event| match event {
       SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
