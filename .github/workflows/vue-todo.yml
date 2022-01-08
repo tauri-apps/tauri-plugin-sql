@@ -62,8 +62,8 @@ jobs:
           ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
 
     - name: Install NPM dependencies and Build App
-      working-directory: ~/examples/vue-todo/
       run: |
+        cd ./examples/vue-todo/
         npm i -g pnpm
         pnpm install --ignore-scripts
         pnpm run build --if-present
@@ -74,5 +74,12 @@ jobs:
         path: ~/examples/vue-todo/node_modules
 
     - name: Lint TODO application (rust and typescript)
-      working-directory: ~/examples/vue-todo/
-      run: npm run lint
+      run: |
+        cd ./examples/vue-todo/
+        npm run lint
+        cargo clippy --features sqlite
+
+    - name: Test TODO application
+      run: |
+        cd ./examples/vue-todo/
+        npm run lint        
