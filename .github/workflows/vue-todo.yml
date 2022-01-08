@@ -32,9 +32,9 @@ jobs:
 
     - name: Install NPM dependencies
       run: |
-        npm ci --ignore-scripts
+        npm install --ignore-scripts
         cd examples/vue-todo
-        npm ci --ignore-scripts
+        npm install --ignore-scripts
 
     - name: Cache NPM deps for the Plugin's Webview
       uses: actions/cache@v2
