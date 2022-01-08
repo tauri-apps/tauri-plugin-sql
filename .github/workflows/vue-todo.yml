@@ -25,7 +25,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Setup node
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
       with:
         node-version: 16
 
@@ -40,6 +40,24 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y webkit2gtk-4.0
 
+    - name: Install NPM dependencies
+      run: |
+        npm ci --ignore-scripts
+        cd examples/vue-todo
+        npm ci --ignore-scripts
+
+    - name: Cache NPM deps for the Plugin's Webview
+      uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: npm-${{ hashFiles('package-lock.json') }}
+        restore-keys: npm-
+
+    - name: Cache NPM deps for the Example App
+      with:
+        path: ~/examples/vue-todo/.npm
+        key: npm-${{ hashFiles('package-lock.json') }}
+        restore-keys: npm-
 
     - name: Cache cargo registry
       uses: actions/cache@v2
@@ -71,17 +89,9 @@ jobs:
         restore-keys: |
           ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
 
-    - name: Build Plugin (with sqlite feature)
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --features sqlite --release
-
     - name: Build example application (vue-todo)
       working-directory: ./examples/vue-todo/
-      run: |
-        npm install
-        npm run build
+      run: npm run build
 
     - name: Lint TODO application (rust and typescript)
       run: npm run lint
