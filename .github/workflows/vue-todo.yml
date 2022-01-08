@@ -43,7 +43,6 @@ jobs:
       with:
         path: ~/node_modules
 
-
     - name: Cache NPM deps for the Example App
       uses: actions/cache@v2
       with:
