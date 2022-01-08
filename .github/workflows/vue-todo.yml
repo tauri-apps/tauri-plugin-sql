@@ -40,6 +40,15 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y webkit2gtk-4.0
 
+    - name: Install Library's Webview
+      run: |
+        npm install 
+        npm build
+
+    - name: Install NPM dependencies
+      working-directory: examples/vue-todo
+      run: npm install
+
     - name: Cache cargo registry
       uses: actions/cache@v2
       with:
