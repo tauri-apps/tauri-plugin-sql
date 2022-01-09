@@ -1,0 +1,67 @@
+name: Example App
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - features/*
+  pull_request:
+    paths-ignore:
+      - 'webview-src/**'
+      - 'webview-dist/**'
+      - 'examples/todos-app/**'
+
+jobs:
+  test-tauri:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup node
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16
+    
+    - name: Install Rust stable
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+
+    - name: Install webkit2gtk (ubuntu only)
+      if: matrix.platform == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y webkit2gtk-4.0 libappindicator3-dev
+
+    - name: Cache cargo index
+      uses: actions/cache@v2
+      with:
+        path: ~/.cargo/git
+        # Add date to the cache to keep it up to date
+        key: ${{ matrix.os }}-${{ matrix.rust }}-cargo-index-${{ hashFiles('**/Cargo.toml') }}-${{ env.CURRENT_DATE }}
+        # Restore from outdated cache for speed
+        restore-keys: |
+          ${{ matrix.os }}-${{ matrix.rust }}-cargo-index-${{ hashFiles('**/Cargo.toml') }}
+
+    - name: Install NPM dependencies
+      run: |
+        npm i -g pnpm
+        pnpm install --ignore-scripts
+        cd ./examples/vue-todos/
+        pnpm install --ignore-scripts
+
+    - name: Build Example App
+      run: |
+        pnpm run build
+        cd ./examples/vue-todos/
+        pnpm run build 
+
+    - name: Lint TODO application (rust and typescript)
+      run: |
+        cd ./examples/vue-todos/
+        npm run lint

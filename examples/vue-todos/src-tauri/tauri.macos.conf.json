@@ -1,0 +1,8 @@
+{
+  "tauri": {
+    "systemTray": {
+      "iconAsTemplate": false,
+      "iconPath": "icons/32x32.png"
+    }
+  }
+}

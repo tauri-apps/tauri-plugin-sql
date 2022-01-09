@@ -25,19 +25,32 @@ pnpm run dev
 
 This will boot up the ViteJS bundler for the frontend and then open up dev mode for Tauri in the backend. You will see a native window popup with the application that looks something like this:
 
-![app look and feel](./docs/dev-mode-app.png)
+| Mac OS                               |
+| ------------------------------------ |
+| ![app look and feel](./docs/app.gif) |
+
+| Windows                                      | Linux                                       |
+| -------------------------------------------- | ------------------------------------------- |
+| ![app look and feel](./docs/windows-app.png) | ![app look and feel](./docs/ubuntu-app.png) |
 
 Features: 
 1. **Add a new todo** in input and press enter or plus button
-2. **Light/Dark mode** toggle as highlighted by #1 above
+2. **Light/Dark mode** toggle
 3. **Completion** check the checkbox to mark as completed
-4. **Remove** click the cancel icon on an existing TODO to remove it
+4. **Filtering** filter the TODO list to only those _completed_ or those still _incomplete_
+5. **Remove** click the cancel icon on an existing TODO to remove it
 
-In addition please note the green icon (highlighted as #2) which indicates that SQLite database has been connected to. 
+In addition please note the green icon (in the lower right) which indicates that SQLite database has been connected to. If there was an error connecting to the DB the icon would turn red and hovering over it will display the error.
 
-The frontend app has been designed such that it will still "work" without this connection but without the DB connection, the state is ephermeral and will be lost the next time you run the app. 
+### System Tray
 
-> Note: when you package the app as a binary during build, this app currently will not have write permissions (open issue) and therefore you'll have a frontend only state mgmt solution.
+We've added a system tray as well to show how this can interact with the main window. The demonstration below is how it would look on macOS:
+
+![mac OS system tray](./docs/mac-system-tray.gif)
+
+| Windows                                                | Ubuntu                                               |
+| ------------------------------------------------------ | ---------------------------------------------------- |
+| ![windows system tray](./docs/windows-system-tray.png) | ![ubuntu system tray](./docs/ubuntu-system-tray.png) |
 
 ### Frontend Only
 
@@ -47,11 +60,9 @@ If you want, you can startup the frontend only and get full hot-module replaceme
 pnpm run dev:frontend
 ```
 
-This will start the ViteJS bundler running in **dev** mode and provide the UI at `localhost:3000`. The screen will look something like this:
+This will start the ViteJS bundler running in **dev** mode and provide the UI at `localhost:3000`.
 
-![frontend only browser view](./docs/frontend-only.png)
-
-> Note the red icon for DB connection because, as expected, SQLite is not available here but you can add and remove TODO's
+> Note the red icon for DB connection because, as expected, SQLite is not available here but you can add and remove TODO's as they are being stored in memory.
 
 ## Building
 
