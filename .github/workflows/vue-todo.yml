@@ -6,8 +6,6 @@ on:
     branches:
       - features/*
   pull_request:
-    branches:
-      - dev
     paths-ignore:
       - 'webview-src/**'
       - 'webview-dist/**'
@@ -25,10 +23,10 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Setup node
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
       with:
         node-version: 16
-
+    
     - name: Install Rust stable
       uses: actions-rs/toolchain@v1
       with:
@@ -40,25 +38,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y webkit2gtk-4.0
 
-    - name: Install Library's Webview
-      run: |
-        npm install 
-        npm build
-
-    - name: Install NPM dependencies
-      working-directory: examples/vue-todo
-      run: npm install
-
-    - name: Cache cargo registry
-      uses: actions/cache@v2
-      with:
-        path: ~/.cargo/registry
-        # Add date to the cache to keep it up to date
-        key: ${{ matrix.os }}-${{ matrix.rust }}-cargo-registry-${{ hashFiles('**/Cargo.toml') }}-${{ env.CURRENT_DATE }}
-        # Restore from outdated cache for speed
-        restore-keys: |
-          ${{ matrix.os }}-${{ matrix.rust }}-cargo-registry-${{ hashFiles('**/Cargo.toml') }}
-
     - name: Cache cargo index
       uses: actions/cache@v2
       with:
@@ -69,19 +48,20 @@ jobs:
         restore-keys: |
           ${{ matrix.os }}-${{ matrix.rust }}-cargo-index-${{ hashFiles('**/Cargo.toml') }}
 
-    - name: Cache cargo target
-      uses: actions/cache@v2
-      with:
-        path: ${{ matrix.project}}/target
-        # Add date to the cache to keep it up to date
-        key: ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}-${{ env.CURRENT_DATE }}
-        # Restore from outdated cache for speed
-        restore-keys: |
-          ${{ matrix.os }}-${{ matrix.rust }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
+    - name: Install NPM dependencies
+      run: |
+        npm i -g pnpm
+        pnpm install --ignore-scripts
+        cd ./examples/vue-todos/
+        pnpm install --ignore-scripts
 
-    - name: Build example application (vue-todo)
-      working-directory: ./examples/vue-todo/
-      run: npm run build
+    - name: Build Example App
+      run: |
+        pnpm run build
+        cd ./examples/vue-todos/
+        pnpm run build 
 
     - name: Lint TODO application (rust and typescript)
-      run: npm run lint
+      run: |
+        cd ./examples/vue-todos/
+        npm run lint
