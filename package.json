@@ -1,19 +1,20 @@
 {
-  "name": "tauri-plugin-sql-api",
+  "name": "tauri-plugin-sql-api",  
   "version": "0.1.0",
   "description": "API wrapper for the Tauri Plugin for SQL databases",
   "license": "Apache-2.0 OR MIT",
-  "module": "webview-dist/index.js",
-  "browser": "webview-dist/index.js",
-  "main": "webview-dist/index.cjs",
+  "authors": [
+    "Tauri Programme within The Commons Conservancy"
+  ],
+  "type": "module",
+  "browser": "webview-dist/index.min.js",
+  "types": "webview-dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./webview-dist/index.js",
-      "require": "./webview-dist/index.cjs"
-    }
+      "import": "./webview-dist/index.mjs"
+    },
+    "./package.json": "./package.json"
   },
-  "types": "./webview-dist/index.d.ts",
-  "type": "module",
   "files": [
     "webview-dist"
   ],
@@ -55,8 +56,5 @@
     "prettier": "2.5.1",
     "tsup": "5.11.11",
     "typescript": "4.5.4"
-  },
-  "authors": [
-    "Tauri Programme within The Commons Conservancy"
-  ]
+  }
 }
