@@ -3,7 +3,8 @@ name = "tauri-plugin-sql"
 version = "0.0.0"
 authors = ["Tauri Programme within The Commons Conservancy"]
 description = "A Tauri plugin for easily interfacing with SQL databases"
-edition = "2018"
+license = "Apache-2.0 OR MIT"
+edition = "2021"
 exclude = ["/examples", "/webview-dist", "/webview-src", "node_modules"]
 
 [dependencies]
