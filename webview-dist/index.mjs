@@ -1,25 +1,15 @@
-export interface QueryResult {
-    /** the number of rows affected by the query. */
-    rowsAffected: number;
-    /**
-     * The last inserted `id`.
-     *
-     * This value is always `0` when using the Postgres driver. If the
-     * last inserted id is required on Postgres, the `select` function
-     * must be used, with a `RETURNING` clause
-     * (`INSERT INTO todos (title) VALUES ($1) RETURNING id`).
-     */
-    lastInsertId: number;
-}
+import { invoke } from '@tauri-apps/api/tauri';
+
 /**
  * **Database**
  *
  * the database class serves as the primary interface for the frontend
  * to communicate to the backend's `tauri-plugin-sql` API.
  */
-export default class Database {
-    path: string;
-    constructor(path: string);
+class Database {
+    constructor(path) {
+        this.path = path;
+    }
     /**
      * **load**
      *
@@ -35,7 +25,11 @@ export default class Database {
      * const db = await Database.load("sqlite:test.db");
      * ```
      */
-    static load(path: string): Promise<Database>;
+    static async load(path) {
+        return await invoke('plugin:sql|load', {
+            db: path
+        }).then((p) => new Database(p));
+    }
     /**
      * **get**
      *
@@ -51,7 +45,9 @@ export default class Database {
      * const db = Database.get("sqlite:test.db");
      * ```
      */
-    static get(path: string): Database;
+    static get(path) {
+        return new Database(path);
+    }
     /**
      * **execute**
      *
@@ -64,7 +60,13 @@ export default class Database {
      * );
      * ```
      */
-    execute(query: string, bindValues?: unknown[]): Promise<QueryResult>;
+    async execute(query, bindValues) {
+        return await invoke('plugin:sql|execute', {
+            db: this.path,
+            query,
+            values: bindValues !== null && bindValues !== void 0 ? bindValues : []
+        }).then(([rowsAffected, lastInsertId]) => ({ rowsAffected, lastInsertId }));
+    }
     /**
      * **select**
      *
@@ -76,5 +78,13 @@ export default class Database {
      * );
      * ```
      */
-    select<T>(query: string, bindValues?: unknown[]): Promise<T>;
+    async select(query, bindValues) {
+        return await invoke('plugin:sql|select', {
+            db: this.path,
+            query,
+            values: bindValues !== null && bindValues !== void 0 ? bindValues : []
+        });
+    }
 }
+
+export { Database as default };
