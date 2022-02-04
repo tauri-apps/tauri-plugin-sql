@@ -246,13 +246,18 @@ async fn select(
             }
           }
           // "JSON" => JsonValue::Object(row.get(i)),
-          "BLOB" => JsonValue::Array(
-            row
-              .get::<Vec<u8>, usize>(i)
-              .into_iter()
-              .map(|i| JsonValue::Number(i.into()))
-              .collect(),
-          ),
+          "BLOB" => {
+            if let Ok(n) = row.try_get::<Vec<u8>, usize>(i) {
+              JsonValue::Array(
+                row
+                  n.into_iter()
+                  .map(|n| JsonValue::Number(n.into()))
+                  .collect(),
+              )
+            } else {
+              JsonValue::Null
+            }
+          }
           _ => JsonValue::Null,
         }
       };
