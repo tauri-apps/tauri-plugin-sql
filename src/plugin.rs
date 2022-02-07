@@ -223,7 +223,13 @@ async fn select(
         JsonValue::Null
       } else {
         match info.name() {
-          "VARCHAR" | "STRING" | "TEXT" => JsonValue::String(row.get(i)),
+          "VARCHAR" | "STRING" | "TEXT" => {
+            if let Ok(s) = row.try_get(i) {
+              JsonValue::String(s)
+            } else {
+              JsonValue::Null
+            }
+          }
           "BOOL" | "BOOLEAN" => {
             if let Ok(b) = row.try_get(i) {
               JsonValue::Bool(b)
@@ -233,16 +239,20 @@ async fn select(
             }
           }
           "INT" | "NUMBER" | "INTEGER" | "BIGINT" | "INT8" => {
-            JsonValue::Number(row.get::<i64, usize>(i).into())
+            if let Ok(n) = row.try_get::<i64, usize>(i) {
+              JsonValue::Number(n.into())
+            } else {
+              JsonValue::Null
+            }
           }
           // "JSON" => JsonValue::Object(row.get(i)),
-          "BLOB" => JsonValue::Array(
-            row
-              .get::<Vec<u8>, usize>(i)
-              .into_iter()
-              .map(|i| JsonValue::Number(i.into()))
-              .collect(),
-          ),
+          "BLOB" => {
+            if let Ok(n) = row.try_get::<Vec<u8>, usize>(i) {
+              JsonValue::Array(n.into_iter().map(|n| JsonValue::Number(n.into())).collect())
+            } else {
+              JsonValue::Null
+            }
+          }
           _ => JsonValue::Null,
         }
       };
