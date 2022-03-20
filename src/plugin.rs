@@ -4,7 +4,7 @@
 
 use futures::future::BoxFuture;
 use serde::{ser::Serializer, Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+use serde_json::{value::Number, Value as JsonValue};
 use sqlx::{
   error::BoxDynError,
   migrate::{
@@ -227,7 +227,7 @@ async fn select(
         JsonValue::Null
       } else {
         match info.name() {
-          "VARCHAR" | "STRING" | "TEXT" => {
+          "VARCHAR" | "STRING" | "TEXT" | "DATETIME" => {
             if let Ok(s) = row.try_get(i) {
               JsonValue::String(s)
             } else {
@@ -245,6 +245,13 @@ async fn select(
           "INT" | "NUMBER" | "INTEGER" | "BIGINT" | "INT8" => {
             if let Ok(n) = row.try_get::<i64, usize>(i) {
               JsonValue::Number(n.into())
+            } else {
+              JsonValue::Null
+            }
+          }
+          "REAL" => {
+            if let Ok(n) = row.try_get::<f64, usize>(i) {
+              JsonValue::Number(JsonNumber::from_f64(n).unwrap())
             } else {
               JsonValue::Null
             }
