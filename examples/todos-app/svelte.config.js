@@ -8,7 +8,6 @@ const config = {
   preprocess: preprocess(),
 
   kit: {
-    // hydrate the <div id="svelte"> element in src/app.html
     adapter: staticAdapter(),
      files: {
        hooks: 'src/hook.ts'
