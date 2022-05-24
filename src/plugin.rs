@@ -211,7 +211,11 @@ async fn select(
   let db = instances.get_mut(&db).ok_or(Error::DatabaseNotLoaded(db))?;
   let mut query = sqlx::query(&query);
   for value in values {
-    query = query.bind(value);
+    if value.is_string() {
+      query = query.bind(value.as_str().unwrap().to_owned())
+    } else {
+      query = query.bind(value);
+    }
   }
   let rows = query.fetch_all(&*db).await?;
   let mut values = Vec::new();
@@ -223,7 +227,7 @@ async fn select(
         JsonValue::Null
       } else {
         match info.name() {
-          "VARCHAR" | "STRING" | "TEXT" => {
+          "VARCHAR" | "STRING" | "TEXT" | "DATETIME" => {
             if let Ok(s) = row.try_get(i) {
               JsonValue::String(s)
             } else {
@@ -241,6 +245,13 @@ async fn select(
           "INT" | "NUMBER" | "INTEGER" | "BIGINT" | "INT8" => {
             if let Ok(n) = row.try_get::<i64, usize>(i) {
               JsonValue::Number(n.into())
+            } else {
+              JsonValue::Null
+            }
+          }
+          "REAL" => {
+            if let Ok(n) = row.try_get::<f64, usize>(i) {
+              JsonValue::from(n)
             } else {
               JsonValue::Null
             }
