@@ -10,7 +10,7 @@ const config = {
   kit: {
     adapter: staticAdapter(),
      files: {
-       hooks: 'src/hook.ts'
+       hooks: 'src/hooks.ts'
      }
   }
 };
