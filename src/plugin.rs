@@ -227,7 +227,7 @@ async fn select(
         JsonValue::Null
       } else {
         match info.name() {
-          "VARCHAR" | "STRING" | "TEXT" => {
+          "VARCHAR" | "STRING" | "TEXT" | "DATETIME" => {
             if let Ok(s) = row.try_get(i) {
               JsonValue::String(s)
             } else {
@@ -249,6 +249,14 @@ async fn select(
               JsonValue::Null
             }
           }
+          "REAL" => {
+            if let Ok(n) = row.try_get::<f64, usize>(i) {
+              JsonValue::from(n)
+            } else {
+              JsonValue::Null
+            }
+          }
+          // "JSON" => JsonValue::Object(row.get(i)),
           "BLOB" => {
             if let Ok(s) = row.try_get(i) {
               JsonFromValue(s).unwrap()
