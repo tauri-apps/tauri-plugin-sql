@@ -256,8 +256,7 @@ async fn select(
               JsonValue::Null
             }
           }
-          // "JSON" => JsonValue::Object(row.get(i)),
-          "BLOB" => {
+          "BLOB" | "JSON" => {
             if let Ok(s) = row.try_get(i) {
               JsonFromValue(s).unwrap()
             } else {
