@@ -1,6 +1,6 @@
 [package]
 name = "tauri-plugin-sql"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["Tauri Programme within The Commons Conservancy"]
 description = "A Tauri plugin for easily interfacing with SQL databases"
 license = "Apache-2.0 OR MIT"
