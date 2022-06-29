@@ -4,7 +4,7 @@
 
 use futures::future::BoxFuture;
 use serde::{ser::Serializer, Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+use serde_json::{from_value as JsonFromValue, Value as JsonValue};
 use sqlx::{
   error::BoxDynError,
   migrate::{
@@ -256,10 +256,9 @@ async fn select(
               JsonValue::Null
             }
           }
-          // "JSON" => JsonValue::Object(row.get(i)),
-          "BLOB" => {
-            if let Ok(n) = row.try_get::<Vec<u8>, usize>(i) {
-              JsonValue::Array(n.into_iter().map(|n| JsonValue::Number(n.into())).collect())
+          "BLOB" | "JSON" => {
+            if let Ok(s) = row.try_get(i) {
+              JsonFromValue(s).unwrap()
             } else {
               JsonValue::Null
             }
