@@ -4,11 +4,11 @@
   "scripts": {
     "dev": "concurrently \"yarn dev:only\" \"yarn tailwind:watch\"",
     "build": "yarn tailwind:build && yarn build:only",
-    "dev:only": "svelte-kit dev",
-    "build:only": "svelte-kit build",
+    "dev:only": "vite dev",
+    "build:only": "vite build",
     "tailwind:watch": "cross-env TAILWIND_MODE=watch cross-env NODE_ENV=development postcss src/styles/tailwind.css -o src/styles/tailwind-output.css -w",
     "tailwind:build": "cross-env TAILWIND_MODE=build cross-env NODE_ENV=production postcss src/styles/tailwind.css -o src/styles/tailwind-output.css",
-    "preview": "svelte-kit preview",
+    "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .",
@@ -36,7 +36,8 @@
     "svelte-preprocess": "^4.0.0",
     "tailwindcss": "^2.2.2",
     "tslib": "^2.0.0",
-    "typescript": "^4.0.0"
+    "typescript": "^4.0.0",
+    "vite": "^2.9.14"
   },
   "type": "module",
   "dependencies": {
