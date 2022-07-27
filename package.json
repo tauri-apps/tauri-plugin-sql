@@ -1,6 +1,6 @@
 {
   "name": "tauri-plugin-sql-api",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "API wrapper for the Tauri Plugin for SQL databases",
   "license": "Apache-2.0 OR MIT",
   "authors": [
