@@ -8,10 +8,7 @@ const config = {
   preprocess: preprocess(),
 
   kit: {
-    adapter: staticAdapter(),
-     files: {
-       hooks: 'src/hooks.ts'
-     }
+    adapter: staticAdapter()
   }
 };
 
