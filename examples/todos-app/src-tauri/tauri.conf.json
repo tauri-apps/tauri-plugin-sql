@@ -5,7 +5,7 @@
   },
   "build": {
     "distDir": "../build",
-    "devPath": "http://localhost:3000",
+    "devPath": "http://localhost:5173",
     "beforeDevCommand": "yarn dev",
     "beforeBuildCommand": "yarn build"
   },
@@ -28,13 +28,11 @@
       "shortDescription": "Handy TODOs app!",
       "longDescription": "",
       "deb": {
-        "depends": [],
-        "useBootstrapper": false
+        "depends": []
       },
       "macOS": {
         "frameworks": [],
         "minimumSystemVersion": "",
-        "useBootstrapper": false,
         "exceptionDomain": "",
         "signingIdentity": null,
         "entitlements": null
