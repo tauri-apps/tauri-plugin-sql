@@ -28,13 +28,11 @@
       "shortDescription": "Handy TODOs app!",
       "longDescription": "an example of using the tauri-plugin-sql, using VueJS on the frontend of a TODO application",
       "deb": {
-        "depends": [],
-        "useBootstrapper": false
+        "depends": []
       },
       "macOS": {
         "frameworks": [],
         "minimumSystemVersion": "",
-        "useBootstrapper": false,
         "exceptionDomain": "",
         "signingIdentity": null,
         "entitlements": null

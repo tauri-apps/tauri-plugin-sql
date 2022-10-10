@@ -16,5 +16,8 @@ export default defineConfig({
       extensions: ['vue']
     }),
     Icons({ compiler: 'vue3', autoInstall: true })
-  ]
+  ],
+  server: {
+    port: 3000
+  }
 });
