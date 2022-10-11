@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "scripts": {
     "build": "tauri build",
-    "build:debug": "tauri build -- --debug",
+    "build:debug": "tauri build --debug",
     "build:ci": "CI=true tauri build",
     "build:frontend": "vue-tsc --noEmit && vite build",
     "dev": "tauri dev",

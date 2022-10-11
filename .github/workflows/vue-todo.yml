@@ -1,15 +1,22 @@
 name: Example App
 
 on:
-  workflow_dispatch:
   push:
     branches:
-      - features/*
+      - main
+      - dev
   pull_request:
+    branches:
+      - main
+      - dev
     paths-ignore:
-      - "webview-src/**"
-      - "webview-dist/**"
-      - "examples/todos-app/**"
+      - 'webview-src/**'
+      - 'webview-dist/**'
+      - 'examples/todos-app/**'
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_DEV_DEBUG: 0
 
 jobs:
   test-tauri:
@@ -30,6 +37,7 @@ jobs:
       - name: Install Rust stable
         uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: stable
 
       - name: Install webkit2gtk (ubuntu only)
@@ -38,19 +46,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y webkit2gtk-4.0
 
-      - name: Cache cargo index
-        uses: actions/cache@v2
+      - name: Setup rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          path: ~/.cargo/git
-          # Add date to the cache to keep it up to date
-          key: ${{ matrix.os }}-${{ matrix.rust }}-cargo-index-${{ hashFiles('**/Cargo.toml') }}-${{ env.CURRENT_DATE }}
-          # Restore from outdated cache for speed
-          restore-keys: |
-            ${{ matrix.os }}-${{ matrix.rust }}-cargo-index-${{ hashFiles('**/Cargo.toml') }}
+          workspaces: examples/vue-todos/src-tauri
+
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 7
 
       - name: Install NPM dependencies
         run: |
-          npm i -g pnpm
           pnpm install --ignore-scripts
           cd ./examples/vue-todos/
           pnpm install --ignore-scripts
@@ -59,9 +65,9 @@ jobs:
         run: |
           pnpm run build
           cd ./examples/vue-todos/
-          pnpm run build
+          pnpm run build:debug
 
-      - name: Lint TODO application (rust and typescript)
+      - name: Lint TODO application
         run: |
           cd ./examples/vue-todos/
-          npm run lint
+          pnpm run lint
