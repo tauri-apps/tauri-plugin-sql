@@ -20,3 +20,7 @@ tauri = "1"
 sqlite = ["sqlx/sqlite"]
 mysql = ["sqlx/mysql"]
 postgres = ["sqlx/postgres"]
+
+[profile.release]
+lto = true
+opt-level = 3

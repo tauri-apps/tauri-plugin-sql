@@ -12,14 +12,13 @@ use sqlx::{
   },
   Column, Pool, Row, TypeInfo,
 };
+use std::collections::HashMap;
 use tauri::{
   command,
   plugin::{Plugin, Result as PluginResult},
   AppHandle, Invoke, Manager, Runtime, State,
 };
 use tokio::sync::Mutex;
-
-use std::collections::HashMap;
 
 #[cfg(feature = "sqlite")]
 use std::{fs::create_dir_all, path::PathBuf};
@@ -266,7 +265,14 @@ async fn select(
               JsonValue::Bool(x.to_lowercase() == "true")
             }
           }
-          "INT" | "NUMBER" | "INTEGER" | "BIGINT" | "INT8" => {
+          "INT" | "NUMBER" | "INTEGER" | "SERIAL" | "INT4" => {
+            if let Ok(n) = row.try_get::<i32, usize>(i) {
+              JsonValue::Number(n.into())
+            } else {
+              JsonValue::Null
+            }
+          }
+          "BIGINT" | "INT8" | "BIGSERIAL" => {
             if let Ok(n) = row.try_get::<i64, usize>(i) {
               JsonValue::Number(n.into())
             } else {
