@@ -13,7 +13,7 @@ pnpm install
 yarn install
 ```
 
-> Note: due to the more limited support of workspaces, do no use **npm** to install
+> Note: due to the more limited support of workspaces, do not use **npm** to install
 
 ## Development
 
@@ -33,7 +33,8 @@ This will boot up the ViteJS bundler for the frontend and then open up dev mode 
 | -------------------------------------------- | ------------------------------------------- |
 | ![app look and feel](./docs/windows-app.png) | ![app look and feel](./docs/ubuntu-app.png) |
 
-Features: 
+Features:
+
 1. **Add a new todo** in input and press enter or plus button
 2. **Light/Dark mode** toggle
 3. **Completion** check the checkbox to mark as completed
