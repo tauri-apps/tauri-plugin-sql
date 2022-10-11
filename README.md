@@ -65,9 +65,9 @@ fn main() {
 `Install from a tagged release`
 
 ```sh
-npm install github:tauri-apps/tauri-plugin-sql#release
+npm install github:tauri-apps/tauri-plugin-sql#dev
 # or
-yarn add github:tauri-apps/tauri-plugin-sql#release
+yarn add github:tauri-apps/tauri-plugin-sql#dev
 ```
 
 `Install from a commit`
@@ -82,7 +82,7 @@ yarn add github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aea
 
 ```json
   "dependencies": {
-    "tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#v0.1.0",
+    "tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#dev",
 ```
 
 Use within your JS/TS:

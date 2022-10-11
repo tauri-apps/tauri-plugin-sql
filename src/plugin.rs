@@ -167,6 +167,30 @@ async fn load<R: Runtime>(
     Ok(db)
 }
 
+/// Allows the database connection(s) to be closed; if no database
+/// name is passed in then _all_ database connection pools will be
+/// shut down.
+#[command]
+async fn close(db_instances: State<'_, DbInstances>, db: Option<String>) -> Result<bool> {
+    let mut instances = db_instances.0.lock().await;
+
+    let pools = if let Some(db) = db {
+        vec![db]
+    } else {
+        instances.iter().map(|(k, _)| k.clone()).collect()
+    };
+
+    for pool in pools {
+        let db = instances
+            .get_mut(&pool) //
+            .ok_or(Error::DatabaseNotLoaded(pool))?;
+        db.close().await;
+    }
+
+    Ok(true)
+}
+
+/// Execute a command against the database
 #[command]
 async fn execute(
     db_instances: State<'_, DbInstances>,
@@ -257,7 +281,7 @@ impl<R: Runtime> Default for TauriSql<R> {
     fn default() -> Self {
         Self {
             migrations: Some(Default::default()),
-            invoke_handler: Box::new(tauri::generate_handler![load, execute, select]),
+            invoke_handler: Box::new(tauri::generate_handler![load, execute, select, close]),
         }
     }
 }

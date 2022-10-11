@@ -1,0 +1,7 @@
+[profile.dev]
+features = sqlite
+
+[profile.production]
+opt-level = 3
+lto = true
+rustc-flags = ["-C", "target_cpu=native"]
