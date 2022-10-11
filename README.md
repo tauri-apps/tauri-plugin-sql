@@ -42,9 +42,8 @@ For more details and usage see [the Todo app](examples/todos-app/). Please note,
 ```yaml
 [dependencies.tauri-plugin-sql]
 git = "https://github.com/tauri-apps/tauri-plugin-sql"
-tag = "v0.1.0"
+# tag = "v0.1.0" Not available yet
 features = ["sqlite"] # or "postgres", or "mysql"
-#branch = "main"
 ```
 
 Use in `src-tauri/src/main.rs`:
@@ -64,10 +63,12 @@ fn main() {
 
 `Install from a tagged release`
 
+**This is not available yet**
+
 ```sh
-npm install github:tauri-apps/tauri-plugin-sql#dev
+npm install github:tauri-apps/tauri-plugin-sql#v0.1.0
 # or
-yarn add github:tauri-apps/tauri-plugin-sql#dev
+yarn add github:tauri-apps/tauri-plugin-sql#v0.1.0
 ```
 
 `Install from a commit`
@@ -78,11 +79,19 @@ npm install github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658
 yarn add github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aeadc8e
 ```
 
+`Install from a branch (dev)`
+
+```sh
+npm install github:tauri-apps/tauri-plugin-sql#dev
+# or
+yarn add github:tauri-apps/tauri-plugin-sql#dev
+```
+
 `package.json`
 
 ```json
   "dependencies": {
-    "tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#dev",
+    "tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql",
 ```
 
 Use within your JS/TS:
