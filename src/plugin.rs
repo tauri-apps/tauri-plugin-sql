@@ -177,22 +177,22 @@ async fn load<R: Runtime>(
 /// shut down.
 #[command]
 async fn close(db_instances: State<'_, DbInstances>, db: Option<String>) -> Result<bool> {
-    let mut instances = db_instances.0.lock().await;
+  let mut instances = db_instances.0.lock().await;
 
-    let pools = if let Some(db) = db {
-        vec![db]
-    } else {
-        instances.iter().map(|(k, _)| k.clone()).collect()
-    };
+  let pools = if let Some(db) = db {
+    vec![db]
+  } else {
+    instances.iter().map(|(k, _)| k.clone()).collect()
+  };
 
-    for pool in pools {
-        let db = instances
-            .get_mut(&pool) //
-            .ok_or(Error::DatabaseNotLoaded(pool))?;
-        db.close().await;
-    }
+  for pool in pools {
+    let db = instances
+      .get_mut(&pool) //
+      .ok_or(Error::DatabaseNotLoaded(pool))?;
+    db.close().await;
+  }
 
-    Ok(true)
+  Ok(true)
 }
 
 /// Execute a command against the database
@@ -310,7 +310,6 @@ impl<R: Runtime> Default for TauriSql<R> {
       migrations: Some(Default::default()),
       invoke_handler: Box::new(tauri::generate_handler![load, execute, select, close]),
     }
-  }
   }
 }
 
