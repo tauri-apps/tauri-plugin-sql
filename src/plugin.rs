@@ -182,7 +182,7 @@ async fn close(db_instances: State<'_, DbInstances>, db: Option<String>) -> Resu
   let pools = if let Some(db) = db {
     vec![db]
   } else {
-    instances.iter().map(|(k, _)| k.clone()).collect()
+    instances.keys().cloned().collect()
   };
 
   for pool in pools {
