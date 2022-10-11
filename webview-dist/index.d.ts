@@ -77,4 +77,12 @@ export default class Database {
      * ```
      */
     select<T>(query: string, bindValues?: unknown[]): Promise<T>;
+    /**
+     * **close**
+     *
+     * Closes the database connection pool.
+     *
+     * @param db optionally state the name of a database if you are managing more than one; otherwise all database pools will be in scope
+     */
+    close(db?: string): Promise<boolean>;
 }
