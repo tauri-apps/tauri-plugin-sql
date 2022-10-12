@@ -2,29 +2,27 @@ import Database from 'tauri-plugin-sql-api';
 import type { QueryResult } from 'tauri-plugin-sql-api';
 import { v4 } from 'uuid';
 import type { Todo, uuid } from '../models/Todo';
-import { useStore } from '../stores/todos';
 
-let db: null | Database = null;
+let database: Database;
 
-async function connect(): Promise<Database> {
-  const s = useStore();
-  try {
-    db = await Database.load('sqlite:test.db');
-    s.setDbConnectionString(db.path);
-    return db;
-  } catch (e) {
-    console.log(e);
-    s.setErrorState(e);
+export async function connect(): Promise<Database> {
+  if (database) {
+    return database;
+  } else {
+    database = await Database.load('sqlite:test.db');
+    return database;
   }
 }
 
-async function all(): Promise<Todo[]> {
+export async function all(): Promise<Todo[]> {
   const db = await connect();
 
   return await db.select('SELECT * FROM todos');
 }
 
-async function create(title: string): Promise<Todo> {
+export async function create(title: string): Promise<Todo> {
+  const db = await connect();
+
   const newTodo = {
     id: v4(),
     title,
@@ -42,7 +40,27 @@ async function create(title: string): Promise<Todo> {
   return newTodo;
 }
 
-async function update(todo: Todo): Promise<Todo> {
+export async function select<T = unknown>(query: string): Promise<T> {
+  const db = await connect();
+
+  return db.select(query);
+}
+
+export async function select_one<T = Record<string, unknown>>(query: string): Promise<T> {
+  const db = await connect();
+
+  return db.select_one(query);
+}
+
+export async function execute(query: string): Promise<QueryResult> {
+  const db = await connect();
+
+  return db.execute(query);
+}
+
+export async function update(todo: Todo): Promise<Todo> {
+  const db = await connect();
+
   await db.execute('UPDATE todos SET title = $1, completed = $2 WHERE id = $3', [
     todo.title,
     todo.completed,
@@ -51,14 +69,8 @@ async function update(todo: Todo): Promise<Todo> {
   return todo;
 }
 
-async function remove(id: uuid): Promise<QueryResult> {
+export async function remove(id: uuid): Promise<QueryResult> {
+  const db = await connect();
+
   return await db.execute('DELETE FROM todos WHERE id = $1', [id]);
 }
-
-export default {
-  connect,
-  all,
-  create,
-  update,
-  remove
-};

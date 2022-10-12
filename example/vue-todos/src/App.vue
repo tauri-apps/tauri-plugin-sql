@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { UseDark } from '@vueuse/components';
-import { onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useStore } from './stores/todos';
+import { select } from './services/Storage';
 
 const s = useStore();
 

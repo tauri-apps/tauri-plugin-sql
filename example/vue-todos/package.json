@@ -19,7 +19,7 @@
     "@vueuse/core": "^9.3.0",
     "pinia": "^2.0.23",
     "@tauri-apps/api": "^1.1.0",
-    "tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#dev",
+    "tauri-plugin-sql-api": "workspace:*",
     "uuid": "^9.0.0",
     "vue": "^3.2.40"
   },

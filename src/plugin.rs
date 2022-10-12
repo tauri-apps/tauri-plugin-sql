@@ -16,7 +16,7 @@ use std::collections::HashMap;
 use tauri::{
   command,
   plugin::{Plugin, Result as PluginResult},
-  AppHandle, Invoke, Manager, Runtime, State,
+  AppHandle, Invoke, Manager, RunEvent, Runtime, State,
 };
 use tokio::sync::Mutex;
 
@@ -43,6 +43,11 @@ pub enum Error {
   Migration(#[from] sqlx::migrate::MigrateError),
   #[error("database {0} not loaded")]
   DatabaseNotLoaded(String),
+
+  #[error("Problem transforming column {0} into valid JsonValue type!")]
+  ColumnEncoding(String),
+  #[error("A column in the database was of an unknown type: {0}")]
+  UnknownType(String),
 }
 
 impl Serialize for Error {
@@ -142,6 +147,7 @@ impl MigrationSource<'static> for MigrationList {
   }
 }
 
+/// Open up a connection pool to a database
 #[command]
 async fn load<R: Runtime>(
   #[allow(unused_variables)] app: AppHandle<R>,
@@ -175,7 +181,7 @@ async fn load<R: Runtime>(
 /// name is passed in then _all_ database connection pools will be
 /// shut down.
 #[command]
-async fn close(db_instances: State<'_, DbInstances>, db: Option<String>) -> Result<bool> {
+async fn close(db_instances: State<'_, DbInstances>, db: Option<String>) -> Result<()> {
   let mut instances = db_instances.0.lock().await;
 
   let pools = if let Some(db) = db {
@@ -191,7 +197,7 @@ async fn close(db_instances: State<'_, DbInstances>, db: Option<String>) -> Resu
     db.close().await;
   }
 
-  Ok(true)
+  Ok(())
 }
 
 /// Execute a command against the database
@@ -223,6 +229,94 @@ async fn execute(
   r
 }
 
+/// run a select against the database which expects only a single
+/// row to be returned
+#[command]
+async fn select_one(
+  db_instances: State<'_, DbInstances>,
+  db: String,
+  query: String,
+  values: Vec<JsonValue>,
+) -> Result<HashMap<String, JsonValue>> {
+  let mut instances = db_instances.0.lock().await;
+  let db = instances.get_mut(&db).ok_or(Error::DatabaseNotLoaded(db))?;
+  let mut query = sqlx::query(&query);
+  for value in values {
+    if value.is_string() {
+      query = query.bind(value.as_str().unwrap().to_owned())
+    } else {
+      query = query.bind(value);
+    }
+  }
+  let row = query.fetch_one(&*db).await?;
+
+  let mut hashmap = HashMap::default();
+  for (i, column) in row.columns().iter().enumerate() {
+    let info = column.type_info();
+    let v = if info.is_null() {
+      JsonValue::Null
+    } else {
+      match info.name() {
+        "VARCHAR" | "STRING" | "TEXT" | "DATETIME" => {
+          if let Ok(s) = row.try_get(i) {
+            JsonValue::String(s)
+          } else {
+            JsonValue::Null
+          }
+        }
+        "BOOL" | "BOOLEAN" => {
+          if let Ok(b) = row.try_get(i) {
+            JsonValue::Bool(b)
+          } else {
+            let x: String = row.get(i);
+            JsonValue::Bool(x.to_lowercase() == "true")
+          }
+        }
+        "INT" | "NUMBER" | "INTEGER" | "SERIAL" | "INT4" => {
+          if let Ok(n) = row.try_get::<i32, usize>(i) {
+            JsonValue::Number(n.into())
+          } else {
+            JsonValue::Null
+          }
+        }
+        "BIGINT" | "INT8" | "BIGSERIAL" => {
+          if let Ok(n) = row.try_get::<i64, usize>(i) {
+            JsonValue::Number(n.into())
+          } else {
+            JsonValue::Null
+          }
+        }
+        "REAL" => {
+          if let Ok(n) = row.try_get::<f64, usize>(i) {
+            JsonValue::from(n)
+          } else {
+            JsonValue::Null
+          }
+        }
+        "()" => {
+          if let Ok(n) = row.try_get::<i32, usize>(i) {
+            JsonValue::from(n)
+          } else {
+            JsonValue::Null
+          }
+        }
+        // "JSON" => JsonValue::Object(row.get(i)),
+        "BLOB" => {
+          if let Ok(n) = row.try_get::<Vec<u8>, usize>(i) {
+            JsonValue::Array(n.into_iter().map(|n| JsonValue::Number(n.into())).collect())
+          } else {
+            JsonValue::Null
+          }
+        }
+        _ => return Err(Error::UnknownType(column.name().to_string())),
+      }
+    };
+    hashmap.insert(column.name().to_string(), v);
+  }
+
+  Ok(hashmap)
+}
+
 #[command]
 async fn select(
   db_instances: State<'_, DbInstances>,
@@ -243,7 +337,8 @@ async fn select(
   let rows = query.fetch_all(&*db).await?;
   let mut values = Vec::new();
   for row in rows {
-    let mut value = HashMap::default();
+    let mut hashmap = HashMap::default();
+
     for (i, column) in row.columns().iter().enumerate() {
       let info = column.type_info();
       let v = if info.is_null() {
@@ -294,12 +389,20 @@ async fn select(
               JsonValue::Null
             }
           }
-          _ => JsonValue::Null,
+          "()" => {
+            if let Ok(n) = row.try_get::<i32, usize>(i) {
+              JsonValue::from(n)
+            } else {
+              JsonValue::Null
+            }
+          }
+          _ => return Err(Error::UnknownType(column.name().to_string())),
         }
       };
-      value.insert(column.name().to_string(), v);
+      hashmap.insert(column.name().to_string(), v);
     }
-    values.push(value);
+
+    values.push(hashmap);
   }
   Ok(values)
 }
@@ -314,7 +417,9 @@ impl<R: Runtime> Default for TauriSql<R> {
   fn default() -> Self {
     Self {
       migrations: Some(Default::default()),
-      invoke_handler: Box::new(tauri::generate_handler![load, execute, select, close]),
+      invoke_handler: Box::new(tauri::generate_handler![
+        load, execute, select, select_one, close,
+      ]),
     }
   }
 }
@@ -376,5 +481,17 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
 
   fn extend_api(&mut self, message: Invoke<R>) {
     (self.invoke_handler)(message)
+  }
+
+  fn on_event(&mut self, app: &AppHandle<R>, event: &RunEvent) {
+    if let RunEvent::Exit = event {
+      tauri::async_runtime::block_on(async move {
+        let instances = &*app.state::<DbInstances>();
+        let instances = instances.0.lock().await;
+        for value in instances.values() {
+          value.close().await;
+        }
+      });
+    }
   }
 }

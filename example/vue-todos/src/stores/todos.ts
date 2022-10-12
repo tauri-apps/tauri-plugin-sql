@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import Storage from '../services/Storage';
+import * as Storage from '../services/Storage';
 import type { Todo, uuid } from '../models/Todo';
 
 function localOnly() {
@@ -11,6 +11,7 @@ export const useStore = defineStore('todos', {
     return {
       todos: [] as Todo[],
       ready: false,
+      count: 'undetermined',
       dbError: undefined as string | undefined,
       dbConnectionString: ''
     };
@@ -39,6 +40,9 @@ export const useStore = defineStore('todos', {
     async initializeDbBackedStore() {
       try {
         await Storage.connect();
+        let count = await Storage.select_one('select count(*) as count from todos');
+        console.log(`there are ${JSON.stringify(count)} TODOs in the database`);
+        this.count = count;
       } catch (e) {
         this.dbError = `Failed to connect to DB: ${e}`;
         console.log(this.dbError);

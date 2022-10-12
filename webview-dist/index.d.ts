@@ -1,4 +1,4 @@
-export interface QueryResult {
+interface QueryResult {
     /** the number of rows affected by the query. */
     rowsAffected: number;
     /**
@@ -17,14 +17,14 @@ export interface QueryResult {
  * the database class serves as the primary interface for the frontend
  * to communicate to the backend's `tauri-plugin-sql` API.
  */
-export default class Database {
+declare class Database {
     path: string;
     constructor(path: string);
     /**
      * **load**
      *
      * A static initializer which connects to the underlying database
-     * and returns a `Database` instance once a connecion to the database
+     * and returns a `Database` instance once a connection to the database
      * is established.
      *
      * # Sqlite
@@ -78,6 +78,13 @@ export default class Database {
      */
     select<T>(query: string, bindValues?: unknown[]): Promise<T>;
     /**
+     * **select_one**
+     *
+     * Passes in a SELECT query to the database for execution where only a
+     * single row is expected.
+     */
+    select_one<T>(query: string, bindValues?: unknown[]): Promise<T>;
+    /**
      * **close**
      *
      * Closes the database connection pool.
@@ -86,3 +93,5 @@ export default class Database {
      */
     close(db?: string): Promise<boolean>;
 }
+
+export { QueryResult, Database as default };
