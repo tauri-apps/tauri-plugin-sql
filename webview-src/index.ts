@@ -104,4 +104,17 @@ export default class Database {
       values: bindValues ?? []
     })
   }
+
+  /**
+   * **close**
+   * 
+   * Closes the database connection pool.
+   * 
+   * @param db optionally state the name of a database if you are managing more than one; otherwise all database pools will be in scope
+   */
+  async close(db?: string): Promise<boolean> {
+    return await invoke('plugin:sql|close', {
+      db
+    })
+  }
 }

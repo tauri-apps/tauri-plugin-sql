@@ -6,6 +6,9 @@
   },
 
   "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "webview-src/tsconfig.json"
+  },
 
   "extends": [
     "eslint:recommended",
