@@ -30,11 +30,11 @@
     "tslib": "2.4.0"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "15.0.0",
-    "@rollup/plugin-typescript": "9.0.1",
-    "@typescript-eslint/eslint-plugin": "5.40.0",
-    "@typescript-eslint/parser": "5.40.0",
-    "eslint": "8.25.0",
+    "@rollup/plugin-node-resolve": "15.0.1",
+    "@rollup/plugin-typescript": "9.0.2",
+    "@typescript-eslint/eslint-plugin": "5.41.0",
+    "@typescript-eslint/parser": "5.41.0",
+    "eslint": "8.26.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
     "prettier": "2.7.1",
