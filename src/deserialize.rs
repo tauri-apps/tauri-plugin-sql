@@ -14,7 +14,7 @@ pub fn deserialize_col<'a>(
   if info.is_null() {
     Ok(JsonValue::Null)
   } else {
-    let v = match info.name() {
+    let v = match info.name().to_uppercase().as_str() {
       "TEXT" => JsonValue::String(row.try_get(i)?),
       "BLOB" => {
         let v: String = row.try_get(i)?;
@@ -61,21 +61,21 @@ pub fn deserialize_col<'a>(
   if info.is_null() {
     Ok(JsonValue::Null)
   } else {
-    Ok(match info.name() {
-      "text" => JsonValue::String(row.try_get(i)?),
-      "varchar" => JsonValue::String(row.try_get(i)?),
-      "bool" => JsonValue::Bool(row.try_get(i)?),
-      "date" => JsonValue::String(row.try_get(i)?),
-      "time" => JsonValue::String(row.try_get(i)?),
-      "timestamp" => JsonValue::String(row.try_get(i)?),
-      "timestamptz" => JsonValue::String(row.try_get(i)?),
-      "bytea" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
-      "int2" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
-      "int4" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
-      "int8" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
-      "float4" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
-      "float8" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
-      "numeric" => {
+    Ok(match info.name().to_uppercase().as_str() {
+      "TEXT" => JsonValue::String(row.try_get(i)?),
+      "VARCHAR" => JsonValue::String(row.try_get(i)?),
+      "BOOL" => JsonValue::Bool(row.try_get(i)?),
+      "DATE" => JsonValue::String(row.try_get(i)?),
+      "TIME" => JsonValue::String(row.try_get(i)?),
+      "TIMESTAMP" => JsonValue::String(row.try_get(i)?),
+      "TIMESTAMPTZ" => JsonValue::String(row.try_get(i)?),
+      "BYTEA" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "INT2" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
+      "INT4" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      "INT8" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "FLOAT4" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      "FLOAT8" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "NUMERIC" => {
         if let Ok(v) = row.try_get::<i64, &usize>(i) {
           return Ok(JsonValue::Number(v.into()));
         }
@@ -110,7 +110,7 @@ pub fn deserialize_col<'a>(
   if info.is_null() {
     Ok(JsonValue::Null)
   } else {
-    let v = match info.name() {
+    let v = match info.name().to_uppercase().as_str() {
       "TIMESTAMP" => JsonValue::String(row.try_get(i)?),
       "DATE" => JsonValue::String(row.try_get(i)?),
       "TIME" => JsonValue::String(row.try_get(i)?),
