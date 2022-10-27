@@ -14,6 +14,8 @@ compile_error!(
   "Database driver not defined. Please set the feature flag for the driver of your choice."
 );
 
+pub mod deserialize;
+
 #[cfg(any(
   all(feature = "sqlite", not(any(feature = "mysql", feature = "postgres"))),
   all(feature = "mysql", not(any(feature = "sqlite", feature = "postgres"))),
