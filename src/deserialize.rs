@@ -1,5 +1,6 @@
 use crate::plugin::Error;
 use serde_json::Value as JsonValue;
+#[allow(unused_imports)]
 use sqlx::{Column, Row, TypeInfo};
 
 #[cfg(feature = "sqlite")]
@@ -50,17 +51,17 @@ pub fn deserialize_col<'a>(
 }
 
 #[cfg(feature = "postgres")]
-pub fn deserialize_col(
-  row: &sqlx::postgres::PgRow,
-  col: &sqlx::postgres::PgColumn,
-  i: &usize,
+pub fn deserialize_col<'a>(
+  row: &'a sqlx::postgres::PgRow,
+  col: &'a sqlx::postgres::PgColumn,
+  i: &'a usize,
 ) -> Result<JsonValue, Error> {
   let info = col.type_info();
 
   if info.is_null() {
     Ok(JsonValue::Null)
   } else {
-    let v = match info.name() {
+    Ok(match info.name() {
       "text" => JsonValue::String(row.try_get(i)?),
       "varchar" => JsonValue::String(row.try_get(i)?),
       "bool" => JsonValue::Bool(row.try_get(i)?),
@@ -68,25 +69,41 @@ pub fn deserialize_col(
       "time" => JsonValue::String(row.try_get(i)?),
       "timestamp" => JsonValue::String(row.try_get(i)?),
       "timestamptz" => JsonValue::String(row.try_get(i)?),
-      "bytea" => JsonValue::String(base64::encode(row.try_get(i)?)),
-      "int2" => JsonValue::Number(row.try_get(i)?.into()),
-      "int4" => JsonValue::Number(row.try_get(i)?.into()),
-      "int8" => JsonValue::Number(row.try_get(i)?.into()),
-      "float4" => JsonValue::Number(row.try_get(i)?.into()),
-      "float8" => JsonValue::Number(row.try_get(i)?.into()),
-      "numeric" => JsonValue::Number(row.try_get(i)?.into()),
-      _ => JsonValue::Null,
-    };
+      "bytea" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "int2" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
+      "int4" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      "int8" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "float4" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      "float8" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "numeric" => {
+        if let Ok(v) = row.try_get::<i64, &usize>(i) {
+          return Ok(JsonValue::Number(v.into()));
+        }
+        if let Ok(v) = row.try_get::<i32, &usize>(i) {
+          return Ok(JsonValue::Number(v.into()));
+        }
+        if let Ok(v) = row.try_get::<i16, &usize>(i) {
+          return Ok(JsonValue::Number(v.into()));
+        }
+        if let Ok(v) = row.try_get::<i8, &usize>(i) {
+          return Ok(JsonValue::Number(v.into()));
+        }
 
-    Ok(v)
+        return Err(Error::NumericDecoding(
+          info.name().to_string(),
+          String::from("Postgres"),
+        ));
+      }
+      _ => JsonValue::Null,
+    })
   }
 }
 
 #[cfg(feature = "mysql")]
-pub fn deserialize_col(
-  row: &sqlx::mysql::MySqlRow,
-  col: &sqlx::mysql::MySqlColumn,
-  i: &usize,
+pub fn deserialize_col<'a>(
+  row: &'a sqlx::mysql::MySqlRow,
+  col: &'a sqlx::mysql::MySqlColumn,
+  i: &'a usize,
 ) -> Result<JsonValue, Error> {
   let info = col.type_info();
 
@@ -94,78 +111,36 @@ pub fn deserialize_col(
     Ok(JsonValue::Null)
   } else {
     let v = match info.name() {
-      "TIMESTAMP" => JsonValue::String(row.try_get(i).unwrap()),
-      "DATE" => JsonValue::String(row.try_get(i).unwrap()),
-      "TIME" => JsonValue::String(row.try_get(i).unwrap()),
-      "DATETIME" => JsonValue::String(row.try_get(i).unwrap()),
-      "NEWDATE" => JsonValue::String(row.try_get(i).unwrap()),
-      "VARCHAR" => JsonValue::String(row.try_get(i).unwrap()),
-      "VAR_STRING" => JsonValue::String(row.try_get(i).unwrap()),
-      "STRING" => JsonValue::String(row.try_get(i).unwrap()),
-      "TINY_BLOB" => JsonValue::String(base64::encode(row.try_get(i).unwrap())),
-      "MEDIUM_BLOB" => JsonValue::String(base64::encode(row.try_get(i).unwrap())),
-      "LONG_BLOB" => JsonValue::String(base64::encode(row.try_get(i).unwrap())),
-      "BLOB" => JsonValue::String(base64::encode(row.try_get(i).unwrap())),
-      "ENUM" => JsonValue::String(row.try_get(i).unwrap()),
-      "SET" => JsonValue::String(row.try_get(i).unwrap()),
-      "GEOMETRY" => JsonValue::String(base64::encode(row.try_get(i).unwrap())),
-      "TINY" => JsonValue::Number(row.try_get(i).unwrap().into()),
-      "SHORT" => JsonValue::Number(row.try_get(i).unwrap().into()),
-      "LONG" => JsonValue::Number(row.try_get(i).unwrap().into()),
-      "REAL" => JsonValue::Number(row.try_get(i).unwrap().into()),
-      "LONGLONG" => JsonValue::Number(row.try_get(i).unwrap().into()),
-      "INT24" => JsonValue::Number(row.try_get(i).unwrap().into()),
-      "YEAR" => JsonValue::Number(row.try_get(i).unwrap().into()),
-      "FLOAT" => JsonValue::Number(row.try_get(i).unwrap().into()),
-      "DOUBLE" => JsonValue::Number(row.try_get(i).unwrap().into()),
-      "BIT" => JsonValue::Number(row.try_get(i).unwrap().into()),
+      "TIMESTAMP" => JsonValue::String(row.try_get(i)?),
+      "DATE" => JsonValue::String(row.try_get(i)?),
+      "TIME" => JsonValue::String(row.try_get(i)?),
+      "DATETIME" => JsonValue::String(row.try_get(i)?),
+      "NEWDATE" => JsonValue::String(row.try_get(i)?),
+      "VARCHAR" => JsonValue::String(row.try_get(i)?),
+      "VAR_STRING" => JsonValue::String(row.try_get(i)?),
+      "STRING" => JsonValue::String(row.try_get(i)?),
+      "TINY_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "MEDIUM_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "LONG_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "ENUM" => JsonValue::String(row.try_get(i)?),
+      "SET" => JsonValue::String(row.try_get(i)?),
+      "GEOMETRY" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "TINY" | "TINYINT" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
+      "SMALL" | "SMALLINT" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
+      // really only takes 24-bits
+      "MEDIUM" | "MEDIUMINT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      // 32-bit primitive
+      "INT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      "BIGINT" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "REAL" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "YEAR" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
+      "FLOAT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      "DOUBLE" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "BIT" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
       _ => JsonValue::Null,
     };
 
     Ok(v)
   }
 }
-
-// let v = if info.is_null() {
-//     JsonValue::Null
-//   } else {
-//     match info.name() {
-//       "VARCHAR" | "STRING" | "TEXT" | "DATETIME" => {
-//         if let Ok(s) = row.try_get(i) {
-//           JsonValue::String(s)
-//         } else {
-//           JsonValue::Null
-//         }
-//       }
-//       "BOOL" | "BOOLEAN" => {
-//         if let Ok(b) = row.try_get(i) {
-//           JsonValue::Bool(b)
-//         } else {
-//           let x: String = row.get(i);
-//           JsonValue::Bool(x.to_lowercase() == "true")
-//         }
-//       }
-//       "INT" | "NUMBER" | "INTEGER" | "BIGINT" | "INT8" => {
-//         if let Ok(n) = row.try_get::<i64, usize>(i) {
-//           JsonValue::Number(n.into())
-//         } else {
-//           JsonValue::Null
-//         }
-//       }
-//       "REAL" => {
-//         if let Ok(n) = row.try_get::<f64, usize>(i) {
-//           JsonValue::from(n)
-//         } else {
-//           JsonValue::Null
-//         }
-//       }
-//       // "JSON" => JsonValue::Object(row.get(i)),
-//       "BLOB" => {
-//         if let Ok(n) = row.try_get::<Vec<u8>, usize>(i) {
-//           JsonValue::Array(n.into_iter().map(|n| JsonValue::Number(n.into())).collect())
-//         } else {
-//           JsonValue::Null
-//         }
-//       }
-//       _ => JsonValue::Null,
-//     }

@@ -250,7 +250,7 @@ async fn select(
   for row in rows {
     let mut value = HashMap::default();
     for (i, column) in row.columns().iter().enumerate() {
-      let v = deserialize_col(&row, &column, &i)?;
+      let v = deserialize_col(&row, column, &i)?;
       value.insert(column.name().to_string(), v);
     }
     values.push(value);
