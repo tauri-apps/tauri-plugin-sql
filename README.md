@@ -29,9 +29,11 @@ Forthcoming tauri bindings to other programming languages, like DENO.
 
 There are three general methods of installation that we can recommend.
 
-1. Pull sources directly from Github using git tags / revision hashes (most secure, good for development, shown below)
+1. Pull sources directly from Github using git tags / branches / revision hashes
 2. Git submodule install this repo in your tauri project and then use `file` protocol to ingest the source
 3. Use crates.io and npm (easiest, and requires you to trust that our publishing pipeline worked)
+
+> **Note:** Tauri takes security very seriously so until we have decided the best auditing approach for plugins we are not publishing to Cargo and NPM. During the interim, however, you should normally be well served just to point at the `dev` branch of this repository.
 
 For more details and usage see [the Todo app](examples/todos-app/). Please note, below in the dependencies you can also lock to a revision/tag in both the `Cargo.toml` and `package.json`
 
@@ -61,38 +63,40 @@ fn main() {
 
 ### WEBVIEW
 
-`Install from a tagged release`
+1. Install from a **tagged release**
 
-**This is not available yet**
+   **Tagged releases are not available yet**
 
-```sh
-npm install github:tauri-apps/tauri-plugin-sql#v0.1.0
-# or
-yarn add github:tauri-apps/tauri-plugin-sql#v0.1.0
-```
+   ```sh
+   npm install github:tauri-apps/tauri-plugin-sql#v0.1.0
+   # or
+   yarn add github:tauri-apps/tauri-plugin-sql#v0.1.0
+   ```
 
-`Install from a commit`
+2. Install from a **commit**
 
-```sh
-npm install github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aeadc8e
-# or
-yarn add github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aeadc8e
-```
+   ```sh
+   npm install github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aeadc8e
+   # or
+   yarn add github:tauri-apps/tauri-plugin-sql#488558717b77d8a2bcb37acfd2eca9658aeadc8e
+   ```
 
-`Install from a branch (dev)`
+3. Install from a **branch (dev)**
 
-```sh
-npm install github:tauri-apps/tauri-plugin-sql#dev
-# or
-yarn add github:tauri-apps/tauri-plugin-sql#dev
-```
+   ```sh
+   npm install github:tauri-apps/tauri-plugin-sql#dev
+   # or
+   yarn add github:tauri-apps/tauri-plugin-sql#dev
+   ```
 
-`package.json`
+Once installed, add the dependency to your `package.json`:
 
-```json
-  "dependencies": {
-    "tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql",
-```
+   ```json
+     "dependencies": {
+       "tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql",
+   ```
+
+## Usage
 
 Use within your JS/TS:
 

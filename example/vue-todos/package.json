@@ -2,6 +2,7 @@
   "name": "todos-app",
   "version": "1.1.0",
   "scripts": {
+    "audit:fix": "pnpm audit --fix",
     "build": "tauri build",
     "build:debug": "tauri build --debug",
     "build:ci": "CI=true tauri build",
