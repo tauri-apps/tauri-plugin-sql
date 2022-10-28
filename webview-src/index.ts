@@ -14,16 +14,20 @@ export interface QueryResult {
   lastInsertId: number;
 }
 
+export type DbConnection = `${`sqlite` | `postgres` | `mysql`}:${string}`;
+
 /**
  * **Database**
  *
  * the database class serves as the primary interface for the frontend
  * to communicate to the backend's `tauri-plugin-sql` API.
+ *
+ * @connection  is a DB connection string like `sqlite:test.db`, etc.
  */
 export default class Database {
-  path: string;
-  constructor(path: string) {
-    this.path = path;
+  path: DbConnection;
+  constructor(connection: DbConnection) {
+    this.path = connection;
   }
 
   /**
@@ -41,10 +45,10 @@ export default class Database {
    * const db = await Database.load("sqlite:test.db");
    * ```
    */
-  static async load(path: string): Promise<Database> {
+  static async load<C extends DbConnection>(connection: C): Promise<Database> {
     return await invoke<string>("plugin:sql|load", {
-      db: path
-    }).then((p) => new Database(p));
+      db: connection
+    }).then(() => new Database(connection));
   }
 
   /**
@@ -62,8 +66,8 @@ export default class Database {
    * const db = Database.get("sqlite:test.db");
    * ```
    */
-  static get(path: string): Database {
-    return new Database(path);
+  static get(connection: DbConnection): Database {
+    return new Database(connection);
   }
 
   /**
@@ -113,9 +117,9 @@ export default class Database {
    *
    * @param db optionally state the name of a database if you are managing more than one; otherwise all database pools will be in scope
    */
-  async close(db?: string): Promise<boolean> {
+  async close(): Promise<boolean> {
     return await invoke("plugin:sql|close", {
-      db
+      db: this.path
     });
   }
 }

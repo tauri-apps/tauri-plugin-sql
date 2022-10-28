@@ -5,10 +5,12 @@ import { invoke } from '@tauri-apps/api/tauri';
  *
  * the database class serves as the primary interface for the frontend
  * to communicate to the backend's `tauri-plugin-sql` API.
+ *
+ * @connection  is a DB connection string like `sqlite:test.db`, etc.
  */
 class Database {
-    constructor(path) {
-        this.path = path;
+    constructor(connection) {
+        this.path = connection;
     }
     /**
      * **load**
@@ -25,10 +27,10 @@ class Database {
      * const db = await Database.load("sqlite:test.db");
      * ```
      */
-    static async load(path) {
+    static async load(connection) {
         return await invoke("plugin:sql|load", {
-            db: path
-        }).then((p) => new Database(p));
+            db: connection
+        }).then(() => new Database(connection));
     }
     /**
      * **get**
@@ -45,8 +47,8 @@ class Database {
      * const db = Database.get("sqlite:test.db");
      * ```
      */
-    static get(path) {
-        return new Database(path);
+    static get(connection) {
+        return new Database(connection);
     }
     /**
      * **execute**
@@ -93,9 +95,9 @@ class Database {
      *
      * @param db optionally state the name of a database if you are managing more than one; otherwise all database pools will be in scope
      */
-    async close(db) {
+    async close() {
         return await invoke("plugin:sql|close", {
-            db
+            db: this.path
         });
     }
 }
