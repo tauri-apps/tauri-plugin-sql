@@ -1,4 +1,4 @@
-export interface QueryResult {
+interface QueryResult {
     /** the number of rows affected by the query. */
     rowsAffected: number;
     /**
@@ -11,7 +11,7 @@ export interface QueryResult {
      */
     lastInsertId: number;
 }
-export declare type DbConnection = `${`sqlite` | `postgres` | `mysql`}:${string}`;
+declare type DbConnection = `${`sqlite` | `postgres` | `mysql`}:${string}`;
 /**
  * **Database**
  *
@@ -20,7 +20,7 @@ export declare type DbConnection = `${`sqlite` | `postgres` | `mysql`}:${string}
  *
  * @connection  is a DB connection string like `sqlite:test.db`, etc.
  */
-export default class Database {
+declare class Database {
     path: DbConnection;
     constructor(connection: DbConnection);
     /**
@@ -90,3 +90,5 @@ export default class Database {
      */
     close(): Promise<boolean>;
 }
+
+export { DbConnection, QueryResult, Database as default };

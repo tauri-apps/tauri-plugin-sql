@@ -9,7 +9,7 @@
     "build:frontend": "vue-tsc --noEmit && vite build",
     "dev": "tauri dev",
     "dev:frontend": "vite",
-    "lint": "eslint src --ext ts --fix ",
+    "lint": "echo no linting for now",
     "preview": "run-p preview:*",
     "preview:vite": "vite preview",
     "preview:tauri": "tauri dev",
@@ -20,7 +20,7 @@
     "@vueuse/components": "^9.4.0",
     "@vueuse/core": "^9.4.0",
     "pinia": "^2.0.23",
-    "tauri-plugin-sql-api": "../../",
+    "tauri-plugin-sql-api": "../..",
     "uuid": "^9.0.0",
     "vue": "^3.2.41"
   },
