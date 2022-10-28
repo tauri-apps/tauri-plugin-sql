@@ -46,6 +46,8 @@ pub enum Error {
   DatabaseNotLoaded(String),
   #[error("Could not decode the numeric column {0} into a type for {1} database.")]
   NumericDecoding(String, String),
+  #[error("Sqlite doesn't have a native Boolean type but represents boolean values as an integer value of 0 or 1, however we received a value of {0} for the column {1}")]
+  BooleanDecoding(String, String),
 }
 
 impl Serialize for Error {

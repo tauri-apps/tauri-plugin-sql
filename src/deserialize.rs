@@ -15,12 +15,14 @@ pub fn deserialize_col<'a>(
     Ok(JsonValue::Null)
   } else {
     let v = match info.name().to_uppercase().as_str() {
-      "TEXT" => JsonValue::String(row.try_get(i)?),
+      "TEXT" | "STRING" | "VARCHAR" | "DATETIME" => {
+        JsonValue::String(row.try_get::<String, &usize>(i)?)
+      }
       "BLOB" => {
         let v: String = row.try_get(i)?;
         JsonValue::String(base64::encode(v))
       }
-      "INTEGER" => {
+      "INTEGER" | "INT" | "NUMBER" => {
         if let Ok(v) = row.try_get::<i64, &usize>(i) {
           return Ok(JsonValue::Number(v.into()));
         }
@@ -38,6 +40,33 @@ pub fn deserialize_col<'a>(
           info.name().to_string(),
           String::from("Sqlite"),
         ));
+      }
+      "BOOL" | "BOOLEAN" => {
+        // booleans in sqlite are represented as an integer
+        if let Ok(b) = row.try_get::<i8, &usize>(i) {
+          let b: JsonValue = match b {
+            0_i8 => JsonValue::Bool(false),
+            1_i8 => JsonValue::Bool(true),
+            _ => {
+              return Err(Error::BooleanDecoding(
+                b.to_string(),
+                info.name().to_string(),
+              ));
+            }
+          };
+
+          return Ok(b);
+        }
+
+        // but they can also be represented with "TRUE" / "FALSE" symbols too
+        if let Ok(b) = row.try_get::<String, &usize>(i) {
+          JsonValue::Bool(&b.to_lowercase() == "true")
+        } else {
+          return Err(Error::BooleanDecoding(
+            i.to_string(),
+            info.name().to_string(),
+          ));
+        }
       }
       "REAL" => {
         let v: i64 = row.try_get(i)?;
