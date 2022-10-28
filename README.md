@@ -5,6 +5,8 @@
 This plugin provides a "classical" Tauri Plugin Interface to SQL databases through [sqlx](https://github.com/launchbadge/sqlx).
 It supports the `sqlite`, `mysql` and `postgres` drivers, enabled through a Cargo feature.
 
+> **Note:** the **sqlx** crate now supports `mssql` as well as the aforementioned database technologies and we _have_ added this feature type here too. Unfortunately it would appear that the exposed interface by **sqlx** is different in ways that makes it currently incompatible with our migrations loading strategy. Rather than remove the feature we have left the feature in place with all the appropriate conditional code with the hope that someone with a **MSSql** need will pick this up and create a PR.
+
 ## Architecture
 
 This repo shape might appear to be strange, but it is really just a hybrid Rust / Typescript project that recommends a specific type of consumption, namely using GIT as the secure distribution mechanism, and referencing specific unforgeable git hashes. Of course, it can also be consumed via Cargo and NPM.
