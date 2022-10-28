@@ -22,7 +22,7 @@ pub fn deserialize_col<'a>(
         let v: String = row.try_get(i)?;
         JsonValue::String(base64::encode(v))
       }
-      "INTEGER" | "INT" | "NUMBER" => {
+      "INTEGER" | "INT" => {
         if let Ok(v) = row.try_get::<i64, &usize>(i) {
           return Ok(JsonValue::Number(v.into()));
         }
@@ -68,7 +68,7 @@ pub fn deserialize_col<'a>(
           ));
         }
       }
-      "REAL" => {
+      "REAL" | "FLOAT" | "DOUBLE" | "NUMERIC" => {
         let v: i64 = row.try_get(i)?;
         JsonValue::Number(v.into())
       }
@@ -132,6 +132,52 @@ pub fn deserialize_col<'a>(
 pub fn deserialize_col<'a>(
   row: &'a sqlx::mysql::MySqlRow,
   col: &'a sqlx::mysql::MySqlColumn,
+  i: &'a usize,
+) -> Result<JsonValue, Error> {
+  let info = col.type_info();
+
+  if info.is_null() {
+    Ok(JsonValue::Null)
+  } else {
+    let v = match info.name().to_uppercase().as_str() {
+      "TIMESTAMP" => JsonValue::String(row.try_get(i)?),
+      "DATE" => JsonValue::String(row.try_get(i)?),
+      "TIME" => JsonValue::String(row.try_get(i)?),
+      "DATETIME" => JsonValue::String(row.try_get(i)?),
+      "NEWDATE" => JsonValue::String(row.try_get(i)?),
+      "VARCHAR" => JsonValue::String(row.try_get(i)?),
+      "VAR_STRING" => JsonValue::String(row.try_get(i)?),
+      "STRING" => JsonValue::String(row.try_get(i)?),
+      "TINY_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "MEDIUM_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "LONG_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "ENUM" => JsonValue::String(row.try_get(i)?),
+      "SET" => JsonValue::String(row.try_get(i)?),
+      "GEOMETRY" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "TINY" | "TINYINT" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
+      "SMALL" | "SMALLINT" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
+      // really only takes 24-bits
+      "MEDIUM" | "MEDIUMINT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      // 32-bit primitive
+      "INT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      "BIGINT" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "REAL" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "YEAR" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
+      "FLOAT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      "DOUBLE" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "BIT" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
+      _ => JsonValue::Null,
+    };
+
+    Ok(v)
+  }
+}
+
+#[cfg(feature = "mssql")]
+pub fn deserialize_col<'a>(
+  row: &'a sqlx::mssql::MssqlRow,
+  col: &'a sqlx::mssql::MssqlColumn,
   i: &'a usize,
 ) -> Result<JsonValue, Error> {
   let info = col.type_info();

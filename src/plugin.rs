@@ -30,6 +30,8 @@ type Db = sqlx::sqlite::Sqlite;
 type Db = sqlx::mysql::MySql;
 #[cfg(feature = "postgres")]
 type Db = sqlx::postgres::Postgres;
+#[cfg(feature = "mssql")]
+type Db = sqlx::mssql::Mssql;
 
 #[cfg(feature = "sqlite")]
 type LastInsertId = i64;

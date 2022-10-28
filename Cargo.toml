@@ -21,6 +21,7 @@ base64 = "0.13"
 sqlite = ["sqlx/sqlite"]
 mysql = ["sqlx/mysql"]
 postgres = ["sqlx/postgres"]
+mssql = ["sqlx/mssql"]
 
 [profile.release]
 lto = true
