@@ -109,7 +109,11 @@ pub fn deserialize_col<'a>(
       "TIME" => JsonValue::String(row.try_get(i)?),
       "TIMESTAMP" => JsonValue::String(row.try_get(i)?),
       "TIMESTAMPTZ" => JsonValue::String(row.try_get(i)?),
-      "BYTEA" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "BYTEA" => {
+        // try to encode into numeric array
+        let v = row.try_get::<Vec<u8>, &usize>(i)?;
+        JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
+      }
       "CHAR" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
       "INT2" | "SMALLINT" | "SMALLSERIAL" => {
         JsonValue::Number(row.try_get::<i16, &usize>(i)?.into())
@@ -170,17 +174,18 @@ pub fn deserialize_col<'a>(
       "JSON" => JsonValue::String(row.try_get(i)?),
       "VAR_STRING" => JsonValue::String(row.try_get(i)?),
       "STRING" => JsonValue::String(row.try_get(i)?),
-      "TINY_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
-      "MEDIUM_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
-      "LONG_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
-      "BLOB" => {
+      "BLOB" | "TINY_BLOB" | "MEDIUM_BLOB" | "LONG_BLOB" => {
         // try to encode into numeric array
         let v = row.try_get::<Vec<u8>, &usize>(i)?;
         JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
       }
       "ENUM" => JsonValue::String(row.try_get(i)?),
       "SET" => JsonValue::String(row.try_get(i)?),
-      "GEOMETRY" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "GEOMETRY" => {
+        // try to encode into numeric array
+        let v = row.try_get::<Vec<u8>, &usize>(i)?;
+        JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
+      }
       "TINY" | "TINYINT" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
       "SMALL" | "SMALLINT" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
       // really only takes 24-bits
@@ -226,25 +231,18 @@ pub fn deserialize_col<'a>(
       "VARCHAR" => JsonValue::String(row.try_get(i)?),
       "VAR_STRING" => JsonValue::String(row.try_get(i)?),
       "STRING" => JsonValue::String(row.try_get(i)?),
-      "TINY_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
-      "MEDIUM_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
-      "LONG_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
-      "BLOB" => {
+      "BLOB" | "TINY_BLOB" | "MEDIUM_BLOB" | "LONG_BLOB" => {
         // try to encode into numeric array
-        if let Ok(v) = row.try_get::<Vec<u8>, &usize>(i) {
-          info!("BLOB converted to numeric array");
-          return Ok(JsonValue::Array(
-            v.into_iter().map(|n| JsonValue::Number(n.into())).collect(),
-          ));
-        }
-        // encode into base64 string or fail
-        let v: String = row.try_get(i)?;
-        info!("BLOB converted to base64 string");
-        JsonValue::String(base64::encode(v))
+        let v = row.try_get::<Vec<u8>, &usize>(i)?;
+        JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
       }
       "ENUM" => JsonValue::String(row.try_get(i)?),
       "SET" => JsonValue::String(row.try_get(i)?),
-      "GEOMETRY" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "GEOMETRY" => {
+        // try to encode into numeric array
+        let v = row.try_get::<Vec<u8>, &usize>(i)?;
+        JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
+      }
       "TINY" | "TINYINT" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
       "SMALL" | "SMALLINT" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
       // really only takes 24-bits

@@ -11,7 +11,12 @@
 ))]
 compile_error!("Only one database driver can be enabled. Use `default-features = false` and set the feature flag for the driver of your choice.");
 
-#[cfg(not(any(feature = "sqlite", feature = "mysql", feature = "postgres")))]
+#[cfg(not(any(
+  feature = "sqlite",
+  feature = "mysql",
+  feature = "postgres",
+  feature = "mssql"
+)))]
 compile_error!(
   "Database driver not defined. Please set the feature flag for the driver of your choice."
 );
@@ -25,7 +30,7 @@ pub mod deserialize;
   ),
   all(
     feature = "mysql",
-    not(any(feature = "sqlite", feature = "mysql", feature = "postgres"))
+    not(any(feature = "sqlite", feature = "mssql", feature = "postgres"))
   ),
   all(
     feature = "postgres",
