@@ -91,19 +91,21 @@ pub fn deserialize_col<'a>(
     Ok(JsonValue::Null)
   } else {
     Ok(match info.name().to_uppercase().as_str() {
-      "TEXT" => JsonValue::String(row.try_get(i)?),
-      "VARCHAR" => JsonValue::String(row.try_get(i)?),
+      "TEXT" | "VARCHAR" | "NAME" => JsonValue::String(row.try_get(i)?),
       "BOOL" => JsonValue::Bool(row.try_get(i)?),
       "DATE" => JsonValue::String(row.try_get(i)?),
       "TIME" => JsonValue::String(row.try_get(i)?),
       "TIMESTAMP" => JsonValue::String(row.try_get(i)?),
       "TIMESTAMPTZ" => JsonValue::String(row.try_get(i)?),
       "BYTEA" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
-      "INT2" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
-      "INT4" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
-      "INT8" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
-      "FLOAT4" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
-      "FLOAT8" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "CHAR" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
+      "INT2" | "SMALLINT" | "SMALLSERIAL" => {
+        JsonValue::Number(row.try_get::<i16, &usize>(i)?.into())
+      }
+      "INT4" | "INT" | "SERIAL" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      "INT8" | "BIGINT" | "BIGSERIAL" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+      "FLOAT4" | "REAL" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      "FLOAT8" | "DOUBLE PRECISION" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
       "NUMERIC" => {
         if let Ok(v) = row.try_get::<i64, &usize>(i) {
           return Ok(JsonValue::Number(v.into()));
