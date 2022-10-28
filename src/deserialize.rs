@@ -92,6 +92,7 @@ pub fn deserialize_col<'a>(
   } else {
     Ok(match info.name().to_uppercase().as_str() {
       "TEXT" | "VARCHAR" | "NAME" => JsonValue::String(row.try_get(i)?),
+      "JSON" => JsonValue::String(row.try_get(i)?),
       "BOOL" => JsonValue::Bool(row.try_get(i)?),
       "DATE" => JsonValue::String(row.try_get(i)?),
       "TIME" => JsonValue::String(row.try_get(i)?),
@@ -147,7 +148,8 @@ pub fn deserialize_col<'a>(
       "TIME" => JsonValue::String(row.try_get(i)?),
       "DATETIME" => JsonValue::String(row.try_get(i)?),
       "NEWDATE" => JsonValue::String(row.try_get(i)?),
-      "VARCHAR" => JsonValue::String(row.try_get(i)?),
+      "VARCHAR" | "TEXT" | "CHAR" => JsonValue::String(row.try_get(i)?),
+      "JSON" => JsonValue::String(row.try_get(i)?),
       "VAR_STRING" => JsonValue::String(row.try_get(i)?),
       "STRING" => JsonValue::String(row.try_get(i)?),
       "TINY_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),

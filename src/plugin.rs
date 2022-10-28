@@ -169,6 +169,7 @@ async fn load<R: Runtime>(
   if !Db::database_exists(&fqdb).await.unwrap_or(false) {
     Db::create_database(&fqdb).await?;
   }
+
   let pool = Pool::connect(&fqdb).await?;
 
   if let Some(migrations) = migrations.0.lock().await.remove(&db) {
@@ -229,6 +230,8 @@ async fn execute(
   let r = Ok((result.rows_affected(), result.last_insert_id()));
   #[cfg(feature = "postgres")]
   let r = Ok((result.rows_affected(), 0));
+  #[cfg(feature = "mssql")]
+  let r = Ok((result.rows_affected(), result.last_insert_id()));
   r
 }
 
