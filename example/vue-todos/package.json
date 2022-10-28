@@ -25,7 +25,9 @@
     "vue": "^3.2.41"
   },
   "devDependencies": {
-    "@iconify/json": "^2.1.129",
+    "@iconify-json/carbon": "^1.1.9",
+    "@iconify-json/ic": "^1.1.9",
+    "@iconify-json/mdi": "^1.1.34",
     "@tauri-apps/cli": "^1.1.1",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.41.0",

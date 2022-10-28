@@ -23,16 +23,8 @@ pub fn deserialize_col<'a>(
       }
       "BLOB" => {
         // try to encode into numeric array
-        if let Ok(v) = row.try_get::<Vec<u8>, &usize>(i) {
-          info!("BLOB converted to numeric array");
-          return Ok(JsonValue::Array(
-            v.into_iter().map(|n| JsonValue::Number(n.into())).collect(),
-          ));
-        }
-        // encode into base64 string or fail
-        let v: String = row.try_get(i)?;
-        info!("BLOB converted to base64 string");
-        JsonValue::String(base64::encode(v))
+        let v = row.try_get::<Vec<u8>, &usize>(i)?;
+        JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
       }
       "INTEGER" | "INT" => {
         if let Ok(v) = row.try_get::<i64, &usize>(i) {
@@ -183,16 +175,8 @@ pub fn deserialize_col<'a>(
       "LONG_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
       "BLOB" => {
         // try to encode into numeric array
-        if let Ok(v) = row.try_get::<Vec<u8>, &usize>(i) {
-          info!("BLOB converted to numeric array");
-          return Ok(JsonValue::Array(
-            v.into_iter().map(|n| JsonValue::Number(n.into())).collect(),
-          ));
-        }
-        // encode into base64 string or fail
-        let v: String = row.try_get(i)?;
-        info!("BLOB converted to base64 string");
-        JsonValue::String(base64::encode(v))
+        let v = row.try_get::<Vec<u8>, &usize>(i)?;
+        JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
       }
       "ENUM" => JsonValue::String(row.try_get(i)?),
       "SET" => JsonValue::String(row.try_get(i)?),

@@ -12,7 +12,7 @@ on:
     paths-ignore:
       - "webview-src/**"
       - "webview-dist/**"
-      - "examples/todos-app/**"
+      - "example/todos-app/**"
 
 env:
   CARGO_INCREMENTAL: 0

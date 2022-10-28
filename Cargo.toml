@@ -16,7 +16,6 @@ sqlx = { version = "0.6", features = ["runtime-tokio-rustls", "json"] }
 tokio = { version = "1", features = ["sync"] }
 futures = "0.3"
 tauri = "1"
-base64 = "0.13"
 
 [dev-dependencies]
 tracing-subscriber = "0.3"
@@ -26,7 +25,3 @@ sqlite = ["sqlx/sqlite"]
 mysql = ["sqlx/mysql"]
 postgres = ["sqlx/postgres"]
 mssql = ["sqlx/mssql"]
-
-[profile.release]
-lto = true
-opt-level = 3
