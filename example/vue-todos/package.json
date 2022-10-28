@@ -20,7 +20,7 @@
     "@vueuse/components": "^9.4.0",
     "@vueuse/core": "^9.4.0",
     "pinia": "^2.0.23",
-    "tauri-plugin-sql-api": "workspace:0.1.0",
+    "tauri-plugin-sql-api": "../../",
     "uuid": "^9.0.0",
     "vue": "^3.2.41"
   },
