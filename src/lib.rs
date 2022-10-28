@@ -49,7 +49,7 @@ mod plugin;
   ),
   all(
     feature = "mysql",
-    not(any(feature = "sqlite", feature = "mysql", feature = "postgres"))
+    not(any(feature = "sqlite", feature = "mssql", feature = "postgres"))
   ),
   all(
     feature = "postgres",
