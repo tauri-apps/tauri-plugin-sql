@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "build": "run-p build:*",
-    "build:frontend": "tsup webview-src/index.ts --format=esm,cjs --out-dir webview-dist --dts --clean",
+    "build:frontend": "tsup webview-src/index.ts --format=esm,cjs --out-dir webview-dist --dts --clean && rollup -c ./rollup.config.js",
     "build:backend": "cargo build --release --features sqlite",
     "lint": "eslint webview-src --ext ts",
     "lint-fix": "eslint webview-src --ext ts --fix",
