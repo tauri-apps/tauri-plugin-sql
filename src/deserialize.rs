@@ -1,5 +1,7 @@
 use crate::plugin::Error;
 use serde_json::Value as JsonValue;
+use tracing::{debug, info};
+
 #[allow(unused_imports)]
 use sqlx::{Column, Row, TypeInfo};
 
@@ -10,6 +12,7 @@ pub fn deserialize_col<'a>(
   i: &'a usize,
 ) -> Result<JsonValue, Error> {
   let info = col.type_info();
+  debug!("Deserializing column of type {}", info.name());
 
   if info.is_null() {
     Ok(JsonValue::Null)
@@ -19,7 +22,16 @@ pub fn deserialize_col<'a>(
         JsonValue::String(row.try_get::<String, &usize>(i)?)
       }
       "BLOB" => {
+        // try to encode into numeric array
+        if let Ok(v) = row.try_get::<Vec<u8>, &usize>(i) {
+          info!("BLOB converted to numeric array");
+          return Ok(JsonValue::Array(
+            v.into_iter().map(|n| JsonValue::Number(n.into())).collect(),
+          ));
+        }
+        // encode into base64 string or fail
         let v: String = row.try_get(i)?;
+        info!("BLOB converted to base64 string");
         JsonValue::String(base64::encode(v))
       }
       "INTEGER" | "INT" => {
@@ -72,7 +84,13 @@ pub fn deserialize_col<'a>(
         let v: i64 = row.try_get(i)?;
         JsonValue::Number(v.into())
       }
-      _ => JsonValue::Null,
+      _ => {
+        info!(
+          "an unknown type \"{}\" encountered by Sqlite DB, returning NULL value",
+          info.name().to_string()
+        );
+        JsonValue::Null
+      }
     };
 
     Ok(v)
@@ -86,6 +104,7 @@ pub fn deserialize_col<'a>(
   i: &'a usize,
 ) -> Result<JsonValue, Error> {
   let info = col.type_info();
+  debug!("Deserializing column of type {}", info.name());
 
   if info.is_null() {
     Ok(JsonValue::Null)
@@ -126,7 +145,13 @@ pub fn deserialize_col<'a>(
           String::from("Postgres"),
         ));
       }
-      _ => JsonValue::Null,
+      _ => {
+        info!(
+          "an unknown type \"{}\" encountered by Sqlite DB, returning NULL value",
+          info.name().to_string()
+        );
+        JsonValue::Null
+      }
     })
   }
 }
@@ -138,6 +163,7 @@ pub fn deserialize_col<'a>(
   i: &'a usize,
 ) -> Result<JsonValue, Error> {
   let info = col.type_info();
+  debug!("Deserializing column of type {}", info.name());
 
   if info.is_null() {
     Ok(JsonValue::Null)
@@ -155,7 +181,19 @@ pub fn deserialize_col<'a>(
       "TINY_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
       "MEDIUM_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
       "LONG_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
-      "BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "BLOB" => {
+        // try to encode into numeric array
+        if let Ok(v) = row.try_get::<Vec<u8>, &usize>(i) {
+          info!("BLOB converted to numeric array");
+          return Ok(JsonValue::Array(
+            v.into_iter().map(|n| JsonValue::Number(n.into())).collect(),
+          ));
+        }
+        // encode into base64 string or fail
+        let v: String = row.try_get(i)?;
+        info!("BLOB converted to base64 string");
+        JsonValue::String(base64::encode(v))
+      }
       "ENUM" => JsonValue::String(row.try_get(i)?),
       "SET" => JsonValue::String(row.try_get(i)?),
       "GEOMETRY" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
@@ -171,7 +209,13 @@ pub fn deserialize_col<'a>(
       "FLOAT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
       "DOUBLE" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
       "BIT" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
-      _ => JsonValue::Null,
+      _ => {
+        info!(
+          "an unknown type \"{}\" encountered by Sqlite DB, returning NULL value",
+          info.name().to_string()
+        );
+        JsonValue::Null
+      }
     };
 
     Ok(v)
@@ -201,7 +245,19 @@ pub fn deserialize_col<'a>(
       "TINY_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
       "MEDIUM_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
       "LONG_BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
-      "BLOB" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),
+      "BLOB" => {
+        // try to encode into numeric array
+        if let Ok(v) = row.try_get::<Vec<u8>, &usize>(i) {
+          info!("BLOB converted to numeric array");
+          return Ok(JsonValue::Array(
+            v.into_iter().map(|n| JsonValue::Number(n.into())).collect(),
+          ));
+        }
+        // encode into base64 string or fail
+        let v: String = row.try_get(i)?;
+        info!("BLOB converted to base64 string");
+        JsonValue::String(base64::encode(v))
+      }
       "ENUM" => JsonValue::String(row.try_get(i)?),
       "SET" => JsonValue::String(row.try_get(i)?),
       "GEOMETRY" => JsonValue::String(base64::encode(row.try_get::<String, &usize>(i)?)),

@@ -1,8 +1,8 @@
-import { invoke } from '@tauri-apps/api/tauri'
+import { invoke } from "@tauri-apps/api/tauri";
 
 export interface QueryResult {
   /** the number of rows affected by the query. */
-  rowsAffected: number
+  rowsAffected: number;
   /**
    * The last inserted `id`.
    *
@@ -11,7 +11,7 @@ export interface QueryResult {
    * must be used, with a `RETURNING` clause
    * (`INSERT INTO todos (title) VALUES ($1) RETURNING id`).
    */
-  lastInsertId: number
+  lastInsertId: number;
 }
 
 /**
@@ -21,16 +21,16 @@ export interface QueryResult {
  * to communicate to the backend's `tauri-plugin-sql` API.
  */
 export default class Database {
-  path: string
+  path: string;
   constructor(path: string) {
-    this.path = path
+    this.path = path;
   }
 
   /**
    * **load**
    *
    * A static initializer which connects to the underlying database
-   * and returns a `Database` instance once a connecion to the database
+   * and returns a `Database` instance once a connection to the database
    * is established.
    *
    * # Sqlite
@@ -42,9 +42,9 @@ export default class Database {
    * ```
    */
   static async load(path: string): Promise<Database> {
-    return await invoke<string>('plugin:sql|load', {
+    return await invoke<string>("plugin:sql|load", {
       db: path
-    }).then((p) => new Database(p))
+    }).then((p) => new Database(p));
   }
 
   /**
@@ -52,7 +52,7 @@ export default class Database {
    *
    * A static initializer which synchronously returns an instance of
    * the Database class while deferring the actual database connection
-   * until the first invokation or selection on the database.
+   * until the first invocation or selection on the database.
    *
    * # Sqlite
    *
@@ -63,7 +63,7 @@ export default class Database {
    * ```
    */
   static get(path: string): Database {
-    return new Database(path)
+    return new Database(path);
   }
 
   /**
@@ -78,12 +78,12 @@ export default class Database {
    * );
    * ```
    */
-  async execute(query: string, bindValues?: unknown[]): Promise<QueryResult> {
-    return await invoke<[number, number]>('plugin:sql|execute', {
+  async execute(sql: string, bindValues?: unknown[]): Promise<QueryResult> {
+    return await invoke<[number, number]>("plugin:sql|execute", {
       db: this.path,
-      query,
+      sql,
       values: bindValues ?? []
-    }).then(([rowsAffected, lastInsertId]) => ({ rowsAffected, lastInsertId }))
+    }).then(([rowsAffected, lastInsertId]) => ({ rowsAffected, lastInsertId }));
   }
 
   /**
@@ -97,24 +97,25 @@ export default class Database {
    * );
    * ```
    */
-  async select<T>(query: string, bindValues?: unknown[]): Promise<T> {
-    return await invoke('plugin:sql|select', {
+  async select<T = unknown[]>(sql: string, bindValues?: unknown[]): Promise<T> {
+    return await invoke("plugin:sql|select", {
       db: this.path,
-      query,
+      sql,
       values: bindValues ?? []
-    })
+    });
   }
 
   /**
    * **close**
-   * 
-   * Closes the database connection pool.
-   * 
+   *
+   * Closes the database connection pool explicitly (note: all DBs are closed
+   * automatically on application exit).
+   *
    * @param db optionally state the name of a database if you are managing more than one; otherwise all database pools will be in scope
    */
   async close(db?: string): Promise<boolean> {
-    return await invoke('plugin:sql|close', {
+    return await invoke("plugin:sql|close", {
       db
-    })
+    });
   }
 }

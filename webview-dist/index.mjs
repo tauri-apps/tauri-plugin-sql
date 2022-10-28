@@ -14,7 +14,7 @@ class Database {
      * **load**
      *
      * A static initializer which connects to the underlying database
-     * and returns a `Database` instance once a connecion to the database
+     * and returns a `Database` instance once a connection to the database
      * is established.
      *
      * # Sqlite
@@ -26,7 +26,7 @@ class Database {
      * ```
      */
     static async load(path) {
-        return await invoke('plugin:sql|load', {
+        return await invoke("plugin:sql|load", {
             db: path
         }).then((p) => new Database(p));
     }
@@ -35,7 +35,7 @@ class Database {
      *
      * A static initializer which synchronously returns an instance of
      * the Database class while deferring the actual database connection
-     * until the first invokation or selection on the database.
+     * until the first invocation or selection on the database.
      *
      * # Sqlite
      *
@@ -60,10 +60,10 @@ class Database {
      * );
      * ```
      */
-    async execute(query, bindValues) {
-        return await invoke('plugin:sql|execute', {
+    async execute(sql, bindValues) {
+        return await invoke("plugin:sql|execute", {
             db: this.path,
-            query,
+            sql,
             values: bindValues !== null && bindValues !== void 0 ? bindValues : []
         }).then(([rowsAffected, lastInsertId]) => ({ rowsAffected, lastInsertId }));
     }
@@ -78,22 +78,23 @@ class Database {
      * );
      * ```
      */
-    async select(query, bindValues) {
-        return await invoke('plugin:sql|select', {
+    async select(sql, bindValues) {
+        return await invoke("plugin:sql|select", {
             db: this.path,
-            query,
+            sql,
             values: bindValues !== null && bindValues !== void 0 ? bindValues : []
         });
     }
     /**
      * **close**
      *
-     * Closes the database connection pool.
+     * Closes the database connection pool explicitly (note: all DBs are closed
+     * automatically on application exit).
      *
      * @param db optionally state the name of a database if you are managing more than one; otherwise all database pools will be in scope
      */
     async close(db) {
-        return await invoke('plugin:sql|close', {
+        return await invoke("plugin:sql|close", {
             db
         });
     }

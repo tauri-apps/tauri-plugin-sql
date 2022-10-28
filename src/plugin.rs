@@ -12,14 +12,14 @@ use sqlx::{
   },
   Column, Pool, Row,
 };
+use std::collections::HashMap;
 use tauri::{
   command,
   plugin::{Plugin, Result as PluginResult},
-  AppHandle, Invoke, Manager, Runtime, State,
+  AppHandle, Invoke, Manager, RunEvent, Runtime, State,
 };
 use tokio::sync::Mutex;
-
-use std::collections::HashMap;
+use tracing::{info, instrument};
 
 #[cfg(feature = "sqlite")]
 use std::{fs::create_dir_all, path::PathBuf};
@@ -66,8 +66,8 @@ use crate::deserialize::deserialize_col;
 type Result<T> = std::result::Result<T, Error>;
 
 #[cfg(feature = "sqlite")]
-/// Resolves the App's **file path** from the `AppHandle` context
-/// object
+/// Resolves the App's **file path** from the `AppHandle`
+/// context object
 fn app_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
   app
     .path_resolver()
@@ -133,6 +133,7 @@ pub struct Migration {
 struct MigrationList(Vec<Migration>);
 
 impl MigrationSource<'static> for MigrationList {
+  #[instrument]
   fn resolve(self) -> BoxFuture<'static, std::result::Result<Vec<SqlxMigration>, BoxDynError>> {
     Box::pin(async move {
       let mut migrations = Vec::new();
@@ -178,6 +179,8 @@ async fn load<R: Runtime>(
   }
 
   db_instances.0.lock().await.insert(db.clone(), pool);
+  info!("Database pool \"{}\" has been loaded", db.clone());
+
   Ok(db)
 }
 
@@ -194,6 +197,11 @@ async fn close(db_instances: State<'_, DbInstances>, db: Option<String>) -> Resu
     instances.keys().cloned().collect()
   };
 
+  info!(
+    "{} databases closed explicitly in close() call.",
+    pools.len().to_string()
+  );
+
   for pool in pools {
     let db = instances
       .get_mut(&pool) //
@@ -209,13 +217,13 @@ async fn close(db_instances: State<'_, DbInstances>, db: Option<String>) -> Resu
 async fn execute(
   db_instances: State<'_, DbInstances>,
   db: String,
-  query: String,
+  sql: String,
   values: Vec<JsonValue>,
 ) -> Result<(u64, LastInsertId)> {
   let mut instances = db_instances.0.lock().await;
 
   let db = instances.get_mut(&db).ok_or(Error::DatabaseNotLoaded(db))?;
-  let mut query = sqlx::query(&query);
+  let mut query = sqlx::query(&sql);
   for value in values {
     if value.is_string() {
       query = query.bind(value.as_str().unwrap().to_owned())
@@ -224,6 +232,8 @@ async fn execute(
     }
   }
   let result = query.execute(&*db).await?;
+  info!("successful database execute() command: {}", &sql);
+
   #[cfg(feature = "sqlite")]
   let r = Ok((result.rows_affected(), result.last_insert_rowid()));
   #[cfg(feature = "mysql")]
@@ -232,6 +242,7 @@ async fn execute(
   let r = Ok((result.rows_affected(), 0));
   #[cfg(feature = "mssql")]
   let r = Ok((result.rows_affected(), result.last_insert_id()));
+
   r
 }
 
@@ -239,12 +250,13 @@ async fn execute(
 async fn select(
   db_instances: State<'_, DbInstances>,
   db: String,
-  query: String,
+  sql: String,
   values: Vec<JsonValue>,
 ) -> Result<Vec<HashMap<String, JsonValue>>> {
   let mut instances = db_instances.0.lock().await;
   let db = instances.get_mut(&db).ok_or(Error::DatabaseNotLoaded(db))?;
-  let mut query = sqlx::query(&query);
+  let mut query = sqlx::query(&sql);
+
   for value in values {
     if value.is_string() {
       query = query.bind(value.as_str().unwrap().to_owned())
@@ -252,6 +264,7 @@ async fn select(
       query = query.bind(value);
     }
   }
+
   let rows = query.fetch_all(&*db).await?;
   let mut values = Vec::new();
   for row in rows {
@@ -262,6 +275,8 @@ async fn select(
     }
     values.push(value);
   }
+
+  info!("successful select() query: {}", sql);
 
   Ok(values)
 }
@@ -290,6 +305,9 @@ impl<R: Runtime> TauriSql<R> {
       .as_mut()
       .unwrap()
       .insert(db_url.to_string(), MigrationList(migrations));
+
+    info!("migrations on database have finished");
+
     self
   }
 }
@@ -299,12 +317,12 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
     "sql"
   }
 
-  fn initialize(&mut self, app: &AppHandle<R>, config: serde_json::Value) -> PluginResult<()> {
+  fn initialize(&mut self, app: &AppHandle<R>, user_config: serde_json::Value) -> PluginResult<()> {
     tauri::async_runtime::block_on(async move {
-      let config: PluginConfig = if config.is_null() {
+      let config: PluginConfig = if user_config.is_null() {
         Default::default()
       } else {
-        serde_json::from_value(config)?
+        serde_json::from_value(user_config.clone())?
       };
 
       #[cfg(feature = "sqlite")]
@@ -332,11 +350,27 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
       drop(lock);
       app.manage(instances);
       app.manage(Migrations(Mutex::new(self.migrations.take().unwrap())));
+
+      info!("tauri-sql-plugin is initialized: [config: {}]", user_config);
       Ok(())
     })
   }
 
   fn extend_api(&mut self, message: Invoke<R>) {
     (self.invoke_handler)(message)
+  }
+
+  /// gracefully close all DB pools on application exit
+  fn on_event(&mut self, app: &AppHandle<R>, event: &RunEvent) {
+    info!("closing all DB pools due to application exit");
+    if let RunEvent::Exit = event {
+      tauri::async_runtime::block_on(async move {
+        let instances = &*app.state::<DbInstances>();
+        let instances = instances.0.lock().await;
+        for value in instances.values() {
+          value.close().await;
+        }
+      });
+    }
   }
 }

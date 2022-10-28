@@ -8,6 +8,7 @@ edition = "2021"
 exclude = ["/examples", "/webview-dist", "/webview-src", "node_modules"]
 
 [dependencies]
+tracing = "0.1"
 thiserror = "1.0"
 serde = "1.0"
 serde_json = "1.0"
@@ -16,6 +17,9 @@ tokio = { version = "1", features = ["sync"] }
 futures = "0.3"
 tauri = "1"
 base64 = "0.13"
+
+[dev-dependencies]
+tracing-subscriber = "0.3"
 
 [features]
 sqlite = ["sqlx/sqlite"]

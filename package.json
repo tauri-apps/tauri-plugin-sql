@@ -22,6 +22,7 @@
     "build": "rollup -c ./webview-src/rollup.config.js",
     "lint": "eslint webview-src --ext ts",
     "lint-fix": "eslint webview-src --ext ts --fix",
+    "audit:fix": "pnpm audit --fix",
     "prepublishOnly": "yarn build",
     "pretest": "yarn build"
   },

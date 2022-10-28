@@ -24,7 +24,7 @@ export default class Database {
      * **load**
      *
      * A static initializer which connects to the underlying database
-     * and returns a `Database` instance once a connecion to the database
+     * and returns a `Database` instance once a connection to the database
      * is established.
      *
      * # Sqlite
@@ -41,7 +41,7 @@ export default class Database {
      *
      * A static initializer which synchronously returns an instance of
      * the Database class while deferring the actual database connection
-     * until the first invokation or selection on the database.
+     * until the first invocation or selection on the database.
      *
      * # Sqlite
      *
@@ -64,7 +64,7 @@ export default class Database {
      * );
      * ```
      */
-    execute(query: string, bindValues?: unknown[]): Promise<QueryResult>;
+    execute(sql: string, bindValues?: unknown[]): Promise<QueryResult>;
     /**
      * **select**
      *
@@ -76,11 +76,12 @@ export default class Database {
      * );
      * ```
      */
-    select<T>(query: string, bindValues?: unknown[]): Promise<T>;
+    select<T = unknown[]>(sql: string, bindValues?: unknown[]): Promise<T>;
     /**
      * **close**
      *
-     * Closes the database connection pool.
+     * Closes the database connection pool explicitly (note: all DBs are closed
+     * automatically on application exit).
      *
      * @param db optionally state the name of a database if you are managing more than one; otherwise all database pools will be in scope
      */
