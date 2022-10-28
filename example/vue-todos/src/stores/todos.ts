@@ -1,18 +1,19 @@
-import { defineStore } from 'pinia';
-import Storage from '../services/Storage';
-import type { Todo, uuid } from '../models/Todo';
+import { defineStore } from "pinia";
+import * as Storage from "../services/Storage";
+import type { Todo, uuid } from "../models/Todo";
 
 function localOnly() {
   console.warn(`local storage updated but there is no DB connection`);
 }
 
-export const useStore = defineStore('todos', {
+export const useStore = defineStore("todos", {
   state: () => {
     return {
       todos: [] as Todo[],
       ready: false,
+      count: "undetermined",
       dbError: undefined as string | undefined,
-      dbConnectionString: ''
+      dbConnectionString: ""
     };
   },
   getters: {
@@ -39,6 +40,9 @@ export const useStore = defineStore('todos', {
     async initializeDbBackedStore() {
       try {
         await Storage.connect();
+        let count = await Storage.select("select count(*) as count from todos");
+        console.log(`there are ${JSON.stringify(count)} TODOs in the database`);
+        this.count = count;
       } catch (e) {
         this.dbError = `Failed to connect to DB: ${e}`;
         console.log(this.dbError);
@@ -69,7 +73,9 @@ export const useStore = defineStore('todos', {
         } else {
           localOnly();
         }
-        this.todos = this.todos.map((i: Todo) => (i.id === updated.id ? updated : i));
+        this.todos = this.todos.map((i: Todo) =>
+          i.id === updated.id ? updated : i
+        );
       } catch (e) {
         localOnly();
       }
@@ -82,7 +88,9 @@ export const useStore = defineStore('todos', {
       } else {
         localOnly();
       }
-      this.todos = this.todos.map((i: Todo) => (i.id === todo.id ? updated : i));
+      this.todos = this.todos.map((i: Todo) =>
+        i.id === todo.id ? updated : i
+      );
     },
     async remove(id: uuid) {
       if (this.ready) {
