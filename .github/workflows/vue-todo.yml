@@ -10,9 +10,9 @@ on:
       - main
       - dev
     paths-ignore:
-      - 'webview-src/**'
-      - 'webview-dist/**'
-      - 'examples/todos-app/**'
+      - "webview-src/**"
+      - "webview-dist/**"
+      - "examples/todos-app/**"
 
 env:
   CARGO_INCREMENTAL: 0
@@ -58,16 +58,16 @@ jobs:
       - name: Install NPM dependencies
         run: |
           pnpm install --ignore-scripts
-          cd ./examples/vue-todos/
+          cd ./example/vue-todos/
           pnpm install --ignore-scripts
 
       - name: Build Example App
         run: |
           pnpm run build
-          cd ./examples/vue-todos/
+          cd ./example/vue-todos/
           pnpm run build:debug
 
       - name: Lint TODO application
         run: |
-          cd ./examples/vue-todos/
+          cd ./example/vue-todos/
           pnpm run lint
