@@ -1,17 +1,29 @@
 // Copyright 2021 Tauri Programme within The Commons Conservancy
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
-
-use futures::future::BoxFuture;
 use serde::{ser::Serializer, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
+
+#[cfg(feature = "mssql")]
+use sqlx::mssql::MssqlArguments;
+#[cfg(feature = "mysql")]
+type SqlArguments<'a> = sqlx::mysql::MySqlArguments;
+#[cfg(feature = "postgres")]
+type SqlArguments<'a> = sqlx::postgres::PgArguments;
+#[cfg(feature = "sqlite")]
+type SqlArguments<'a> = sqlx::sqlite::SqliteArguments<'a>;
+
+#[cfg(not(feature = "mssql"))]
+use futures::future::BoxFuture;
+#[cfg(not(feature = "mssql"))]
 use sqlx::{
   error::BoxDynError,
   migrate::{
     MigrateDatabase, Migration as SqlxMigration, MigrationSource, MigrationType, Migrator,
   },
-  Column, Pool, Row,
 };
+
+use sqlx::{query::Query, Column, Pool, Row};
 use std::collections::HashMap;
 use tauri::{
   command,
@@ -19,7 +31,7 @@ use tauri::{
   AppHandle, Invoke, Manager, RunEvent, Runtime, State,
 };
 use tokio::sync::Mutex;
-use tracing::{info, instrument};
+use tracing::info;
 
 #[cfg(feature = "sqlite")]
 use std::{fs::create_dir_all, path::PathBuf};
@@ -50,6 +62,8 @@ pub enum Error {
   NumericDecoding(String, String),
   #[error("Sqlite doesn't have a native Boolean type but represents boolean values as an integer value of 0 or 1, however we received a value of {0} for the column {1}")]
   BooleanDecoding(String, String),
+  #[error("Non-string based query is not allowed with this database")]
+  NonStringQuery,
 }
 
 impl Serialize for Error {
@@ -97,7 +111,10 @@ fn path_mapper(mut app_path: PathBuf, connection_string: &str) -> String {
 #[derive(Default)]
 struct DbInstances(Mutex<HashMap<String, Pool<Db>>>);
 
+#[cfg(not(feature = "mssql"))]
 struct Migrations(Mutex<HashMap<String, MigrationList>>);
+#[cfg(feature = "mssql")]
+struct Migrations();
 
 #[derive(Default, Deserialize)]
 struct PluginConfig {
@@ -106,11 +123,13 @@ struct PluginConfig {
 }
 
 #[derive(Debug)]
+#[cfg(not(feature = "mssql"))]
 pub enum MigrationKind {
   Up,
   Down,
 }
 
+#[cfg(not(feature = "mssql"))]
 impl From<MigrationKind> for MigrationType {
   fn from(kind: MigrationKind) -> Self {
     match kind {
@@ -122,6 +141,7 @@ impl From<MigrationKind> for MigrationType {
 
 /// A migration definition.
 #[derive(Debug)]
+#[cfg(not(feature = "mssql"))]
 pub struct Migration {
   pub version: i64,
   pub description: &'static str,
@@ -130,10 +150,12 @@ pub struct Migration {
 }
 
 #[derive(Debug)]
+#[cfg(not(feature = "mssql"))]
 struct MigrationList(Vec<Migration>);
 
+#[cfg(not(feature = "mssql"))]
 impl MigrationSource<'static> for MigrationList {
-  #[instrument]
+  #[tracing::instrument]
   fn resolve(self) -> BoxFuture<'static, std::result::Result<Vec<SqlxMigration>, BoxDynError>> {
     Box::pin(async move {
       let mut migrations = Vec::new();
@@ -167,12 +189,15 @@ async fn load<R: Runtime>(
   #[cfg(feature = "sqlite")]
   create_dir_all(app_path(&app)).expect("Problem creating App directory!");
 
+  // currently sqlx can not create a mssql database
+  #[cfg(not(feature = "mssql"))]
   if !Db::database_exists(&fqdb).await.unwrap_or(false) {
     Db::create_database(&fqdb).await?;
   }
 
   let pool = Pool::connect(&fqdb).await?;
 
+  #[cfg(not(feature = "mssql"))]
   if let Some(migrations) = migrations.0.lock().await.remove(&db) {
     let migrator = Migrator::new(migrations).await?;
     migrator.run(&pool).await?;
@@ -221,15 +246,12 @@ async fn execute(
   values: Vec<JsonValue>,
 ) -> Result<(u64, LastInsertId)> {
   let mut instances = db_instances.0.lock().await;
-
-  let db = instances.get_mut(&db).ok_or(Error::DatabaseNotLoaded(db))?;
+  let db = instances
+    .get_mut(&db) //
+    .ok_or(Error::DatabaseNotLoaded(db))?;
   let mut query = sqlx::query(&sql);
   for value in values {
-    if value.is_string() {
-      query = query.bind(value.as_str().unwrap().to_owned())
-    } else {
-      query = query.bind(value);
-    }
+    query = bind_query(query, value)?;
   }
   let result = query.execute(&*db).await?;
   info!("successful database execute() command: {}", &sql);
@@ -241,9 +263,35 @@ async fn execute(
   #[cfg(feature = "postgres")]
   let r = Ok((result.rows_affected(), 0));
   #[cfg(feature = "mssql")]
-  let r = Ok((result.rows_affected(), result.last_insert_id()));
+  let r = Ok((result.rows_affected(), 0));
 
   r
+}
+
+#[cfg(feature = "mssql")]
+fn bind_query(
+  mut query: Query<Db, MssqlArguments>,
+  value: JsonValue,
+) -> Result<Query<Db, MssqlArguments>> {
+  if value.is_string() {
+    query = query.bind(value.as_str().unwrap().to_owned());
+    Ok(query)
+  } else {
+    Err(Error::NonStringQuery)
+  }
+}
+#[cfg(not(feature = "mssql"))]
+fn bind_query<'a>(
+  mut query: Query<'a, Db, SqlArguments<'a>>,
+  value: JsonValue,
+) -> Result<Query<'a, Db, SqlArguments<'a>>> {
+  if value.is_string() {
+    query = query.bind(value.as_str().unwrap().to_owned());
+    Ok(query)
+  } else {
+    query = query.bind(value);
+    Ok(query)
+  }
 }
 
 #[command]
@@ -258,11 +306,7 @@ async fn select(
   let mut query = sqlx::query(&sql);
 
   for value in values {
-    if value.is_string() {
-      query = query.bind(value.as_str().unwrap().to_owned())
-    } else {
-      query = query.bind(value);
-    }
+    query = bind_query(query, value)?;
   }
 
   let rows = query.fetch_all(&*db).await?;
@@ -283,6 +327,7 @@ async fn select(
 
 /// Tauri SQL plugin.
 pub struct TauriSql<R: Runtime> {
+  #[cfg(not(feature = "mssql"))]
   migrations: Option<HashMap<String, MigrationList>>,
   invoke_handler: Box<dyn Fn(Invoke<R>) + Send + Sync>,
 }
@@ -290,6 +335,7 @@ pub struct TauriSql<R: Runtime> {
 impl<R: Runtime> Default for TauriSql<R> {
   fn default() -> Self {
     Self {
+      #[cfg(not(feature = "mssql"))]
       migrations: Some(Default::default()),
       invoke_handler: Box::new(tauri::generate_handler![load, execute, select, close]),
     }
@@ -299,6 +345,7 @@ impl<R: Runtime> Default for TauriSql<R> {
 impl<R: Runtime> TauriSql<R> {
   /// Add migrations to a database.
   #[must_use]
+  #[cfg(not(feature = "mssql"))]
   pub fn add_migrations(mut self, db_url: &str, migrations: Vec<Migration>) -> Self {
     self
       .migrations
@@ -336,19 +383,24 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
         #[cfg(not(feature = "sqlite"))]
         let fqdb = db.clone();
 
+        #[cfg(not(feature = "mssql"))]
         if !Db::database_exists(&fqdb).await.unwrap_or(false) {
           Db::create_database(&fqdb).await?;
         }
         let pool = Pool::connect(&fqdb).await?;
 
+        // TODO: currently sqlx does not support migrations for mssql
+        #[cfg(not(feature = "mssql"))]
         if let Some(migrations) = self.migrations.as_mut().unwrap().remove(&db) {
           let migrator = Migrator::new(migrations).await?;
           migrator.run(&pool).await?;
         }
+
         lock.insert(db, pool);
       }
       drop(lock);
       app.manage(instances);
+      #[cfg(not(feature = "mssql"))]
       app.manage(Migrations(Mutex::new(self.migrations.take().unwrap())));
 
       info!("tauri-sql-plugin is initialized: [config: {}]", user_config);

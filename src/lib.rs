@@ -21,6 +21,12 @@ compile_error!(
   "Database driver not defined. Please set the feature flag for the driver of your choice."
 );
 
+#[cfg(any(
+  feature = "sqlite",
+  feature = "mssql",
+  feature = "mysql",
+  feature = "postgres"
+))]
 pub mod deserialize;
 
 #[cfg(any(
