@@ -1,9 +1,15 @@
 use crate::plugin::Error;
 use serde_json::Value as JsonValue;
-use tracing::{debug, info};
+use tracing::debug;
 
 #[allow(unused_imports)]
 use sqlx::{Column, Row, TypeInfo};
+
+/// ensures consistent conversion of a binary
+/// blob in the database to an array of JsonValue::number's
+fn blob(b: Vec<u8>) -> JsonValue {
+  JsonValue::Array(b.into_iter().map(|n| JsonValue::Number(n.into())).collect())
+}
 
 #[cfg(feature = "sqlite")]
 pub fn deserialize_col<'a>(
@@ -22,9 +28,8 @@ pub fn deserialize_col<'a>(
         JsonValue::String(row.try_get::<String, &usize>(i)?)
       }
       "BLOB" => {
-        // try to encode into numeric array
         let v = row.try_get::<Vec<u8>, &usize>(i)?;
-        JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
+        blob(v)
       }
       "INTEGER" | "INT" => {
         if let Ok(v) = row.try_get::<i64, &usize>(i) {
@@ -73,11 +78,11 @@ pub fn deserialize_col<'a>(
         }
       }
       "REAL" | "FLOAT" | "DOUBLE" | "NUMERIC" => {
-        let v: i64 = row.try_get(i)?;
-        JsonValue::Number(v.into())
+        let v: f64 = row.try_get(i)?;
+        JsonValue::from(v)
       }
       _ => {
-        info!(
+        tracing::info!(
           "an unknown type \"{}\" encountered by Sqlite DB, returning NULL value",
           info.name().to_string()
         );
@@ -109,6 +114,10 @@ pub fn deserialize_col<'a>(
       "TIME" => JsonValue::String(row.try_get(i)?),
       "TIMESTAMP" => JsonValue::String(row.try_get(i)?),
       "TIMESTAMPTZ" => JsonValue::String(row.try_get(i)?),
+      "BLOB" => {
+        let v = row.try_get::<Vec<u8>, &usize>(i)?;
+        blob(v)
+      }
       "BYTEA" => {
         // try to encode into numeric array
         let v = row.try_get::<Vec<u8>, &usize>(i)?;
@@ -120,8 +129,15 @@ pub fn deserialize_col<'a>(
       }
       "INT4" | "INT" | "SERIAL" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
       "INT8" | "BIGINT" | "BIGSERIAL" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
-      "FLOAT4" | "REAL" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
-      "FLOAT8" | "DOUBLE PRECISION" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+
+      "FLOAT4" | "REAL" => {
+        let v = row.try_get::<f32, &usize>(i)?;
+        JsonValue::from(v)
+      }
+      "FLOAT8" | "DOUBLE PRECISION" => {
+        let v = row.try_get::<f64, &usize>(i)?;
+        JsonValue::from(v)
+      }
       "NUMERIC" => {
         if let Ok(v) = row.try_get::<i64, &usize>(i) {
           return Ok(JsonValue::Number(v.into()));
@@ -142,8 +158,8 @@ pub fn deserialize_col<'a>(
         ));
       }
       _ => {
-        info!(
-          "an unknown type \"{}\" encountered by Sqlite DB, returning NULL value",
+        tracing::info!(
+          "an unknown type \"{}\" encountered by Postgres DB, returning NULL value",
           info.name().to_string()
         );
         JsonValue::Null
@@ -175,9 +191,8 @@ pub fn deserialize_col<'a>(
       "VAR_STRING" => JsonValue::String(row.try_get(i)?),
       "STRING" => JsonValue::String(row.try_get(i)?),
       "BLOB" | "TINY_BLOB" | "MEDIUM_BLOB" | "LONG_BLOB" => {
-        // try to encode into numeric array
         let v = row.try_get::<Vec<u8>, &usize>(i)?;
-        JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
+        blob(v)
       }
       "ENUM" => JsonValue::String(row.try_get(i)?),
       "SET" => JsonValue::String(row.try_get(i)?),
@@ -188,19 +203,21 @@ pub fn deserialize_col<'a>(
       }
       "TINY" | "TINYINT" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
       "SMALL" | "SMALLINT" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
+      "YEAR" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
       // really only takes 24-bits
       "MEDIUM" | "MEDIUMINT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
       // 32-bit primitive
       "INT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
       "BIGINT" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
-      "REAL" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
-      "YEAR" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
-      "FLOAT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      "REAL" | "FLOAT" => {
+        let v = row.try_get::<f64, &usize>(i)?;
+        JsonValue::from(v)
+      }
       "DOUBLE" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
       "BIT" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
       _ => {
-        info!(
-          "an unknown type \"{}\" encountered by Sqlite DB, returning NULL value",
+        tracing::info!(
+          "an unknown type \"{}\" encountered by MySql database, returning NULL value",
           info.name().to_string()
         );
         JsonValue::Null
@@ -218,6 +235,7 @@ pub fn deserialize_col<'a>(
   i: &'a usize,
 ) -> Result<JsonValue, Error> {
   let info = col.type_info();
+  debug!("Deserializing column of type {}", info.name());
 
   if info.is_null() {
     Ok(JsonValue::Null)
@@ -232,30 +250,41 @@ pub fn deserialize_col<'a>(
       "VAR_STRING" => JsonValue::String(row.try_get(i)?),
       "STRING" => JsonValue::String(row.try_get(i)?),
       "BLOB" | "TINY_BLOB" | "MEDIUM_BLOB" | "LONG_BLOB" => {
-        // try to encode into numeric array
-        let v = row.try_get::<Vec<u8>, &usize>(i)?;
-        JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
+        let v = row.try_get::<String, &usize>(i)?;
+        let v = v.as_bytes().to_vec();
+        blob(v)
       }
       "ENUM" => JsonValue::String(row.try_get(i)?),
       "SET" => JsonValue::String(row.try_get(i)?),
-      "GEOMETRY" => {
-        // try to encode into numeric array
-        let v = row.try_get::<Vec<u8>, &usize>(i)?;
-        JsonValue::Array(v.into_iter().map(|n| JsonValue::Number(n.into())).collect())
-      }
+      "GEOMETRY" => JsonValue::from(row.try_get::<String, &usize>(i)?),
+      "GEOGRAPHY" => JsonValue::from(row.try_get::<String, &usize>(i)?),
       "TINY" | "TINYINT" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
       "SMALL" | "SMALLINT" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
       // really only takes 24-bits
       "MEDIUM" | "MEDIUMINT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
       // 32-bit primitive
       "INT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
+      // 64-bit int
       "BIGINT" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
-      "REAL" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
       "YEAR" => JsonValue::Number(row.try_get::<i16, &usize>(i)?.into()),
-      "FLOAT" => JsonValue::Number(row.try_get::<i32, &usize>(i)?.into()),
-      "DOUBLE" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
       "BIT" => JsonValue::Number(row.try_get::<i8, &usize>(i)?.into()),
-      _ => JsonValue::Null,
+      "DOUBLE" => JsonValue::Number(row.try_get::<i64, &usize>(i)?.into()),
+
+      "REAL" => {
+        let v = row.try_get::<f64, &usize>(i)?;
+        JsonValue::from(v)
+      }
+      "FLOAT" => {
+        let v = row.try_get::<f32, &usize>(i)?;
+        JsonValue::from(v)
+      }
+      _ => {
+        tracing::info!(
+          "an unknown type \"{}\" encountered by MS SQL database, returning NULL value",
+          info.name().to_string()
+        );
+        JsonValue::Null
+      }
     };
 
     Ok(v)
