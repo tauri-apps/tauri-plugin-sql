@@ -15,7 +15,7 @@ use sqlx::{
 use tauri::{
   command,
   plugin::{Plugin, Result as PluginResult},
-  AppHandle, Invoke, Manager, Runtime, State,
+  AppHandle, Invoke, Manager, RunEvent, Runtime, State,
 };
 use tokio::sync::Mutex;
 
@@ -370,5 +370,17 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
 
   fn extend_api(&mut self, message: Invoke<R>) {
     (self.invoke_handler)(message)
+  }
+
+  fn on_event(&mut self, app: &AppHandle<R>, event: &RunEvent) {
+    if let RunEvent::Exit = event {
+      tauri::async_runtime::block_on(async move {
+        let instances = &*app.state::<DbInstances>();
+        let instances = instances.0.lock().await;
+        for value in instances.values() {
+          value.close().await;
+        }
+      });
+    }
   }
 }
