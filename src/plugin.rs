@@ -15,7 +15,7 @@ use sqlx::{
 use tauri::{
   command,
   plugin::{Plugin, Result as PluginResult},
-  AppHandle, Invoke, Manager, Runtime, State, RunEvent,
+  AppHandle, Invoke, Manager, RunEvent, Runtime, State,
 };
 use tokio::sync::Mutex;
 
@@ -357,6 +357,6 @@ impl<R: Runtime> Plugin<R> for TauriSql<R> {
           value.close().await;
         }
       });
-    } 
+    }
   }
 }
