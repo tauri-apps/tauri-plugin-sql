@@ -7,7 +7,7 @@ debug.log
 package-lock.json
 yarn.lock
 
-/target
+target
 Cargo.lock
 node_modules/
 
