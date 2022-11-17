@@ -2,11 +2,10 @@
   let tableHeaders = ['ID', 'Title', 'Completed', 'Action'];
 </script>
 
-<!-- Table head -->
 <thead>
-  <tr>
+  <tr class="text-center ">
     {#each tableHeaders as header}
-      <th>{header}</th>
+      <th class="[&:nth-child(2)]:w-[50%]">{header}</th>
     {/each}
   </tr>
 </thead>
