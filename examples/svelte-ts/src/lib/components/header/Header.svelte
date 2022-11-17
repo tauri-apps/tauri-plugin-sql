@@ -1,6 +1,6 @@
 <script lang="ts">
   import { appConfigDir } from '@tauri-apps/api/path';
-  import { writeText } from '@tauri-apps/api/clipboard';
+  import { open } from '@tauri-apps/api/shell';
   import ThemeSwitcher from '../theme/ThemeSwitcher.svelte';
 
   const db_dir = appConfigDir();
@@ -19,9 +19,9 @@
       </code>
       <button
         on:click={() => {
-          writeText(dir);
+          open(dir);
         }}
-        class="ml-2 btn btn-sm btn-accent">Copy</button
+        class="ml-2 btn btn-sm btn-primary">OPen</button
       >
     {/await}
     <span />
