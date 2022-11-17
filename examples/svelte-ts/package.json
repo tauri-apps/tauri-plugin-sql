@@ -4,7 +4,7 @@
   "version": "1.2.0",
   "type": "module",
   "scripts": {
-    "tauri":"tauri",
+    "tauri": "tauri",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
@@ -15,14 +15,19 @@
     "@tauri-apps/api": "^1.2.0",
     "@tauri-apps/cli": "^1.2.0",
     "@tsconfig/svelte": "^3.0.0",
+    "autoprefixer": "^10.4.7",
+    "daisyui": "^2.41.0",
+    "postcss": "^8.4.14",
+    "postcss-load-config": "^4.0.1",
     "svelte": "^3.52.0",
     "svelte-check": "^2.9.2",
     "svelte-preprocess": "^4.10.7",
+    "tailwindcss": "^3.1.5",
     "tslib": "^2.4.0",
     "typescript": "^4.6.4",
     "vite": "^3.2.3"
   },
-    "dependencies": {
+  "dependencies": {
     "tauri-plugin-sql-api": "../.."
   }
 }
