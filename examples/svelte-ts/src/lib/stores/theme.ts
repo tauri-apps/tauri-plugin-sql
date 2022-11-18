@@ -17,7 +17,6 @@ const createThemeStore = () => {
     toggleTheme: () =>
       update(currentTheme => {
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        console.log('here');
         localStorage.setItem('theme', newTheme);
         return newTheme;
       }),
