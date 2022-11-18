@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^1.1.0",
-    "tslib": "2.4.0"
+    "tslib": "2.4.1"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "15.0.0",
