@@ -1,26 +1,26 @@
 import { writable } from 'svelte/store';
 
-type Theme = 'dark' | 'light'
-
+type Theme = 'dark' | 'light';
 
 const createThemeStore = () => {
-    let theme =  localStorage.getItem('theme') as Theme | null;
-    if (!theme) {
-      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      localStorage.setItem('theme', theme);
-    }
-    const { subscribe, update, set } = writable(theme);
+  let theme = localStorage.getItem('theme') as Theme | null;
+  if (!theme) {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
+    localStorage.setItem('theme', theme);
+  }
+  const { subscribe, update, set } = writable(theme);
 
   return {
     subscribe,
-    toggleTheme:()=> 
+    toggleTheme: () =>
       update(currentTheme => {
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        console.log('here')
+        console.log('here');
         localStorage.setItem('theme', newTheme);
         return newTheme;
-      })
-    
+      }),
   };
 };
 
