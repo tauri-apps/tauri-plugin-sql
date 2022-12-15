@@ -10,9 +10,9 @@ on:
       - main
       - dev
     paths-ignore:
-      - "webview-src/**"
-      - "webview-dist/**"
-      - "examples/todos-app/**"
+      - 'webview-src/**'
+      - 'webview-dist/**'
+      - 'examples/todos-app/**'
 
 env:
   CARGO_INCREMENTAL: 0
@@ -51,7 +51,7 @@ jobs:
         with:
           workspaces: examples/vue-todos/src-tauri
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v2.2.2
         with:
           version: 7
 

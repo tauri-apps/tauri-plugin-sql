@@ -1,17 +1,5 @@
-export interface QueryResult {
-    /** The number of rows affected by the query. */
-    rowsAffected: number;
-    /**
-     * The last inserted `id`.
-     *
-     * This value is always `0` when using the Postgres driver. If the
-     * last inserted id is required on Postgres, the `select` function
-     * must be used, with a `RETURNING` clause
-     * (`INSERT INTO todos (title) VALUES ($1) RETURNING id`).
-     */
-    lastInsertId: number;
-}
-export declare type DbConnection = `${`sqlite` | `postgres` | `mysql`}:${string}`;
+import { invoke } from '@tauri-apps/api/tauri';
+
 /**
  * **Database**
  *
@@ -20,9 +8,10 @@ export declare type DbConnection = `${`sqlite` | `postgres` | `mysql`}:${string}
  *
  * @connection  is a DB connection string like `sqlite:test.db`, etc.
  */
-export default class Database {
-    connection: DbConnection;
-    constructor(connection: DbConnection);
+class Database {
+    constructor(connection) {
+        this.connection = connection;
+    }
     /**
      * **load**
      *
@@ -38,7 +27,12 @@ export default class Database {
      * const db = await Database.load("sqlite:test.db");
      * ```
      */
-    static load<C extends DbConnection>(connection: C): Promise<Database>;
+    static async load(connection) {
+        const _conn = await invoke('plugin:sql|load', {
+            db: connection
+        });
+        return new Database(_conn);
+    }
     /**
      * **get**
      *
@@ -55,7 +49,9 @@ export default class Database {
      * const db = Database.get("sqlite:test.db");
      * ```
      */
-    static get(connection: DbConnection): Database;
+    static get(connection) {
+        return new Database(connection);
+    }
     /**
      * **execute**
      *
@@ -69,7 +65,17 @@ export default class Database {
      * );
      * ```
      */
-    execute(sql: string, bindValues?: unknown[]): Promise<QueryResult>;
+    async execute(sql, bindValues) {
+        const [rowsAffected, lastInsertId] = await invoke('plugin:sql|execute', {
+            db: this.connection,
+            sql,
+            values: bindValues !== null && bindValues !== void 0 ? bindValues : []
+        });
+        return {
+            lastInsertId,
+            rowsAffected
+        };
+    }
     /**
      * **select**
      *
@@ -82,7 +88,13 @@ export default class Database {
      * );
      * ```
      */
-    select<T = unknown[]>(sql: string, bindValues?: unknown[]): Promise<T>;
+    async select(sql, bindValues) {
+        return await invoke('plugin:sql|select', {
+            db: this.connection,
+            sql,
+            values: bindValues !== null && bindValues !== void 0 ? bindValues : []
+        });
+    }
     /**
      * **close**
      *
@@ -94,5 +106,11 @@ export default class Database {
      * ```
      * @param db - Optionally state the name of a database if you are managing more than one. Otherwise, all database pools will be in scope.
      */
-    close(): Promise<boolean>;
+    async close() {
+        return await invoke('plugin:sql|close', {
+            db: this.connection
+        });
+    }
 }
+
+export { Database as default };

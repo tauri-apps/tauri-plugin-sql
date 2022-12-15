@@ -19,5 +19,3 @@ test.db-wal
 **/dist
 *.code-workspace
 .do-devops.json
-
-**/target

@@ -50,7 +50,7 @@ export default class Database {
       db: connection
     })
 
-    return new Database(_conn)
+    return new Database(_conn as DbConnection)
   }
 
   /**

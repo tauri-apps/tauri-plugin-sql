@@ -7,23 +7,19 @@
     "Tauri Programme within The Commons Conservancy"
   ],
   "type": "module",
-  "main": "webview-dist/index.cjs",
-  "module": "webview-dist/index.js",
+  "browser": "webview-dist/index.min.js",
   "types": "webview-dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./webview-dist/index.js",
-      "require": "./webview-dist/index.cjs",
-      "default": "./webview-dist/index.js"
-    }
+      "import": "./webview-dist/index.mjs"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "webview-dist"
   ],
   "scripts": {
-    "build": "run-p build:*",
-    "build:frontend": "tsup webview-src/index.ts --format=esm,cjs --out-dir webview-dist --dts --clean && rollup -c ./rollup.config.js",
-    "build:backend": "cargo build --release --features sqlite",
+    "build": "rollup -c ./webview-src/rollup.config.js",
     "lint": "eslint webview-src --ext ts",
     "lint-fix": "eslint webview-src --ext ts --fix",
     "prepublishOnly": "yarn build",
@@ -34,18 +30,16 @@
     "tslib": "2.4.0"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.0.0",
-    "@rollup/plugin-typescript": "^9.0.1",
-    "@typescript-eslint/eslint-plugin": "^5.41.0",
-    "@typescript-eslint/parser": "^5.41.0",
+    "@rollup/plugin-node-resolve": "15.0.0",
+    "@rollup/plugin-typescript": "9.0.1",
+    "@typescript-eslint/eslint-plugin": "5.40.0",
+    "@typescript-eslint/parser": "5.40.0",
     "eslint": "8.25.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
-    "npm-run-all": "^4.1.5",
     "prettier": "2.7.1",
-    "rollup": "3.2.3",
+    "rollup": "2.79.1",
     "rollup-plugin-terser": "7.0.2",
-    "tsup": "^6.3.0",
     "typescript": "4.8.4"
   }
 }

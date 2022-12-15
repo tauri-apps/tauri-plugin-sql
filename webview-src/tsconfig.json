@@ -2,12 +2,7 @@
   "compilerOptions": {
     "target": "ES2019",
     "strict": true,
-    "lib": [
-      "ES2019",
-      "ES2020.Promise",
-      "ES2020.String",
-      "DOM"
-    ],
+    "lib": ["ES2019", "ES2020.Promise", "ES2020.String", "DOM"],
     "noEmitOnError": true,
     "isolatedModules": true,
     // module resolution
@@ -19,8 +14,5 @@
     "declaration": true,
     "declarationDir": "../webview-dist"
   },
-  "exclude": [
-    "node_modules",
-    "examples"
-  ]
+  "exclude": ["node_modules"]
 }
