@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 
 export interface QueryResult {
-  /** the number of rows affected by the query. */
+  /** The number of rows affected by the query. */
   rowsAffected: number;
   /**
    * The last inserted `id`.
@@ -19,36 +19,38 @@ export type DbConnection = `${`sqlite` | `postgres` | `mysql`}:${string}`;
 /**
  * **Database**
  *
- * the database class serves as the primary interface for the frontend
- * to communicate to the backend's `tauri-plugin-sql` API.
+ * The `Database` class serves as the primary interface for
+ * communicating with the rust side of the sql plugin.
  *
  * @connection  is a DB connection string like `sqlite:test.db`, etc.
  */
 export default class Database {
-  path: DbConnection;
+  connection: DbConnection;
   constructor(connection: DbConnection) {
-    this.path = connection;
+    this.connection = connection;
   }
 
   /**
    * **load**
    *
-   * A static initializer which connects to the underlying database
-   * and returns a `Database` instance once a connection to the database
-   * is established.
+   * A static initializer which connects to the underlying database and
+   * returns a `Database` instance once a connection to the database is established.
    *
    * # Sqlite
    *
    * The path is relative to `tauri::api::path::BaseDirectory::App` and must start with `sqlite:`.
    *
+   * @example
    * ```ts
    * const db = await Database.load("sqlite:test.db");
    * ```
    */
   static async load<C extends DbConnection>(connection: C): Promise<Database> {
-    return await invoke<string>("plugin:sql|load", {
+    const _conn = await invoke<string>('plugin:sql|load', {
       db: connection
-    }).then(() => new Database(connection));
+    })
+
+    return new Database(_conn)
   }
 
   /**
@@ -62,6 +64,7 @@ export default class Database {
    *
    * The path is relative to `tauri::api::path::BaseDirectory::App` and must start with `sqlite:`.
    *
+   * @example
    * ```ts
    * const db = Database.get("sqlite:test.db");
    * ```
@@ -75,6 +78,7 @@ export default class Database {
    *
    * Passes a SQL expression to the database for execution.
    *
+   * @example
    * ```ts
    * const result = await db.execute(
    *    "UPDATE todos SET title = $1, completed = $2 WHERE id = $3",
@@ -83,11 +87,19 @@ export default class Database {
    * ```
    */
   async execute(sql: string, bindValues?: unknown[]): Promise<QueryResult> {
-    return await invoke<[number, number]>("plugin:sql|execute", {
-      db: this.path,
-      sql,
-      values: bindValues ?? []
-    }).then(([rowsAffected, lastInsertId]) => ({ rowsAffected, lastInsertId }));
+    const [rowsAffected, lastInsertId] = await invoke<[number, number]>(
+      'plugin:sql|execute',
+      {
+        db: this.connection,
+        sql,
+        values: bindValues ?? []
+      }
+    )
+
+    return {
+      lastInsertId,
+      rowsAffected
+    }
   }
 
   /**
@@ -95,6 +107,7 @@ export default class Database {
    *
    * Passes in a SELECT query to the database for execution.
    *
+   * @example
    * ```ts
    * const result = await db.select(
    *    "SELECT * from todos WHERE id = $1", id
@@ -102,24 +115,27 @@ export default class Database {
    * ```
    */
   async select<T = unknown[]>(sql: string, bindValues?: unknown[]): Promise<T> {
-    return await invoke("plugin:sql|select", {
-      db: this.path,
+    return await invoke<T>('plugin:sql|select', {
+      db: this.connection,
       sql,
       values: bindValues ?? []
-    });
+    })
   }
 
   /**
    * **close**
    *
-   * Closes the database connection pool explicitly (note: all DBs are closed
-   * automatically on application exit).
+   * Closes the database connection pool.
    *
-   * @param db optionally state the name of a database if you are managing more than one; otherwise all database pools will be in scope
+   * @example
+   * ```ts
+   * const success = await db.close()
+   * ```
+   * @param db - Optionally state the name of a database if you are managing more than one. Otherwise, all database pools will be in scope.
    */
   async close(): Promise<boolean> {
-    return await invoke("plugin:sql|close", {
-      db: this.path
-    });
+    return await invoke<boolean>('plugin:sql|close', {
+      db: this.connection
+    })
   }
 }
