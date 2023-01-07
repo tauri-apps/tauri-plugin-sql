@@ -1,7 +1,0 @@
-{
-  "tauri": {
-    "systemTray": {
-      "iconPath": "icons/icon.ico"
-    }
-  }
-}
