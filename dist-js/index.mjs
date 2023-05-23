@@ -1,6 +1,6 @@
-import { invoke } from '@tauri-apps/api/tauri';
-
 // Copyright 2019-2023 Tauri Programme within The Commons Conservancy
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 /**
  * **Database**
  *
@@ -27,7 +27,7 @@ class Database {
      * ```
      */
     static async load(path) {
-        const _path = await invoke("plugin:sql|load", {
+        const _path = await window.__TAURI_INVOKE__("plugin:sql|load", {
             db: path,
         });
         return new Database(_path);
@@ -65,7 +65,7 @@ class Database {
      * ```
      */
     async execute(query, bindValues) {
-        const [rowsAffected, lastInsertId] = await invoke("plugin:sql|execute", {
+        const [rowsAffected, lastInsertId] = await window.__TAURI_INVOKE__("plugin:sql|execute", {
             db: this.path,
             query,
             values: bindValues !== null && bindValues !== void 0 ? bindValues : [],
@@ -88,7 +88,7 @@ class Database {
      * ```
      */
     async select(query, bindValues) {
-        const result = await invoke("plugin:sql|select", {
+        const result = await window.__TAURI_INVOKE__("plugin:sql|select", {
             db: this.path,
             query,
             values: bindValues !== null && bindValues !== void 0 ? bindValues : [],
@@ -107,7 +107,7 @@ class Database {
      * @param db - Optionally state the name of a database if you are managing more than one. Otherwise, all database pools will be in scope.
      */
     async close(db) {
-        const success = await invoke("plugin:sql|close", {
+        const success = await window.__TAURI_INVOKE__("plugin:sql|close", {
             db,
         });
         return success;

@@ -1,3 +1,8 @@
+declare global {
+    interface Window {
+        __TAURI_INVOKE__: <T>(cmd: string, args?: unknown) => Promise<T>;
+    }
+}
 export interface QueryResult {
     /** The number of rows affected by the query. */
     rowsAffected: number;
