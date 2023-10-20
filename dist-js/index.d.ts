@@ -1,8 +1,3 @@
-declare global {
-    interface Window {
-        __TAURI_INVOKE__: <T>(cmd: string, args?: unknown) => Promise<T>;
-    }
-}
 export interface QueryResult {
     /** The number of rows affected by the query. */
     rowsAffected: number;
@@ -33,7 +28,7 @@ export default class Database {
      *
      * # Sqlite
      *
-     * The path is relative to `tauri::api::path::BaseDirectory::App` and must start with `sqlite:`.
+     * The path is relative to `tauri::path::BaseDirectory::App` and must start with `sqlite:`.
      *
      * @example
      * ```ts
@@ -50,7 +45,7 @@ export default class Database {
      *
      * # Sqlite
      *
-     * The path is relative to `tauri::api::path::BaseDirectory::App` and must start with `sqlite:`.
+     * The path is relative to `tauri::path::BaseDirectory::App` and must start with `sqlite:`.
      *
      * @example
      * ```ts
