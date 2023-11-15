@@ -1,43 +1,4 @@
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-/* global Reflect, Promise, SuppressedError, Symbol */
-
-
-typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
-    var e = new Error(message);
-    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
-
-/**
- * Sends a message to the backend.
- * @example
- * ```typescript
- * import { invoke } from '@tauri-apps/api/primitives';
- * await invoke('login', { user: 'tauri', password: 'poiwe3h4r5ip3yrhtew9ty' });
- * ```
- *
- * @param cmd The command name.
- * @param args The optional arguments to pass to the command.
- * @param options The request options.
- * @return A promise resolving or rejecting to the backend response.
- *
- * @since 1.0.0
- */
-async function invoke(cmd, args = {}, options) {
-    return window.__TAURI_INTERNALS__.invoke(cmd, args, options);
-}
+import { invoke } from '@tauri-apps/api/primitives';
 
 // Copyright 2019-2023 Tauri Programme within The Commons Conservancy
 // SPDX-License-Identifier: Apache-2.0
@@ -128,7 +89,7 @@ class Database {
         const [rowsAffected, lastInsertId] = await invoke("plugin:sql|execute", {
             db: this.path,
             query,
-            values: bindValues !== null && bindValues !== void 0 ? bindValues : [],
+            values: bindValues ?? [],
         });
         return {
             lastInsertId,
@@ -157,7 +118,7 @@ class Database {
         const result = await invoke("plugin:sql|select", {
             db: this.path,
             query,
-            values: bindValues !== null && bindValues !== void 0 ? bindValues : [],
+            values: bindValues ?? [],
         });
         return result;
     }
@@ -181,4 +142,3 @@ class Database {
 }
 
 export { Database as default };
-//# sourceMappingURL=index.min.js.map

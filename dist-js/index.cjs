@@ -1,4 +1,6 @@
-import { invoke } from '@tauri-apps/api/primitives';
+'use strict';
+
+var primitives = require('@tauri-apps/api/primitives');
 
 // Copyright 2019-2023 Tauri Programme within The Commons Conservancy
 // SPDX-License-Identifier: Apache-2.0
@@ -29,7 +31,7 @@ class Database {
      * ```
      */
     static async load(path) {
-        const _path = await invoke("plugin:sql|load", {
+        const _path = await primitives.invoke("plugin:sql|load", {
             db: path,
         });
         return new Database(_path);
@@ -86,10 +88,10 @@ class Database {
      * ```
      */
     async execute(query, bindValues) {
-        const [rowsAffected, lastInsertId] = await invoke("plugin:sql|execute", {
+        const [rowsAffected, lastInsertId] = await primitives.invoke("plugin:sql|execute", {
             db: this.path,
             query,
-            values: bindValues !== null && bindValues !== void 0 ? bindValues : [],
+            values: bindValues ?? [],
         });
         return {
             lastInsertId,
@@ -115,10 +117,10 @@ class Database {
      * ```
      */
     async select(query, bindValues) {
-        const result = await invoke("plugin:sql|select", {
+        const result = await primitives.invoke("plugin:sql|select", {
             db: this.path,
             query,
-            values: bindValues !== null && bindValues !== void 0 ? bindValues : [],
+            values: bindValues ?? [],
         });
         return result;
     }
@@ -134,12 +136,11 @@ class Database {
      * @param db - Optionally state the name of a database if you are managing more than one. Otherwise, all database pools will be in scope.
      */
     async close(db) {
-        const success = await invoke("plugin:sql|close", {
+        const success = await primitives.invoke("plugin:sql|close", {
             db,
         });
         return success;
     }
 }
 
-export { Database as default };
-//# sourceMappingURL=index.mjs.map
+module.exports = Database;
