@@ -86,7 +86,7 @@ class Database {
         const [rowsAffected, lastInsertId] = await invoke("plugin:sql|execute", {
             db: this.path,
             query,
-            values: bindValues !== null && bindValues !== undefined ? bindValues : [],
+            values: bindValues !== null && bindValues !== void 0 ? bindValues : [],
         });
         return {
             lastInsertId,
@@ -115,7 +115,7 @@ class Database {
         const result = await invoke("plugin:sql|select", {
             db: this.path,
             query,
-            values: bindValues !== null && bindValues !== undefined ? bindValues : [],
+            values: bindValues !== null && bindValues !== void 0 ? bindValues : [],
         });
         return result;
     }
