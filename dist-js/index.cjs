@@ -51,14 +51,17 @@ class Database {
      * ```typescript
      * import Database from '@tauri-apps/plugin-sql'
      * const db = await Database.load('sqlite:test.db')
+     * const existingDb = await Database.load('sqlite:test.db', { autoCreate: false })
      * ```
      *
-     * @param path The database connection string, such as `sqlite:test.db`. The database is created if it does not exist yet, and any migration registered for it on the Rust side is run.
+     * @param path The database connection string, such as `sqlite:test.db`. The database is created if it does not exist yet (unless `options.autoCreate` is `false`), and any migration registered for it on the Rust side is run.
+     * @param options Configuration options for connecting to the database.
      * @returns A promise resolving to a `Database` instance connected to the given database.
      */
-    static async load(path) {
+    static async load(path, options) {
         const _path = await core.invoke('plugin:sql|load', {
-            db: path
+            db: path,
+            options
         });
         return new Database(_path);
     }
