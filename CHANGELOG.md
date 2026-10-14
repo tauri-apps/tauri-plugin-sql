@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.0.0-alpha.3]
+
+- [``](https://github.com/tauri-apps/plugins-workspace/commit/undefined) Ported changes from v2.
+- [``](https://github.com/tauri-apps/plugins-workspace/commit/undefined) Update to tauri v3.0.0-alpha.4 and `@tauri-apps/api` v3.0.0-alpha.2.
+
 ## [3.0.0-alpha.2]
 
 - [`2fd27c2d`](https://github.com/tauri-apps/plugins-workspace/commit/2fd27c2d43966a86e436ecd538e133e1812cc641) Update MSRV to 1.95 to match tauri.
@@ -11,6 +16,10 @@
 ## [3.0.0-alpha.0]
 
 - [`363438b5`](https://github.com/tauri-apps/plugins-workspace/commit/363438b50a09162379d57c7c7bfc132520c1e5d4) Update to tauri 3.0 alpha.
+
+## [2.6.0]
+
+- [`c91a9e6a`](https://github.com/tauri-apps/plugins-workspace/commit/c91a9e6af5e51d75d03ae289eb69534ef22fb923) ([#3702](https://github.com/tauri-apps/plugins-workspace/pull/3702) by [@karan5028ji](https://github.com/tauri-apps/plugins-workspace/../../karan5028ji)) Add `autoCreate` option to `Database.load` to control automatic database creation.
 
 ## [2.5.0]
 
